@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { getSiteSettings } from '../lib/keystatic';
+
+const settings = await getSiteSettings();
+const social = [
+  { label: 'Instagram', href: settings.social.instagram },
+  { label: 'TikTok', href: settings.social.tiktok },
+  { label: 'Facebook', href: settings.social.facebook },
+].filter((s) => s.href);
+---
+
+<Base title="Contact" description={`Get in touch with Saucy Fields in ${settings.location.city}, ${settings.location.region}.`}>
+  <section class="section wrap contact">
+    <div>
+      <SectionHeading eyebrow="Say hi" title="Get in touch" as="h1">
+        <p>Send an email, reach out on socials, or use the form. We'd love to hear from you.</p>
+      </SectionHeading>
+
+      <dl class="contact__list">
+        <dt>Email</dt>
+        <dd><a href={`mailto:${settings.email}`}>{settings.email}</a></dd>
+        <dt>Where</dt>
+        <dd>{settings.location.city}, {settings.location.region}</dd>
+        <dt>Socials</dt>
+        <dd class="contact__social">
+          {social.map((s) => <a href={s.href} target="_blank" rel="me noopener">{s.label}</a>)}
+        </dd>
+      </dl>
+      <p class="contact__note">{settings.shippingNote}</p>
+    </div>
+
+    <div class="contact__form panel">
+      <p class="contact__thanks" data-thanks hidden>
+        Thanks — we got your message and will get back to you soon.
+      </p>
+      <form
+        name="contact"
+        method="POST"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+        action="/contact?sent=1"
+        data-contact-form
+      >
+        <input type="hidden" name="form-name" value="contact" />
+        <p class="contact__hp">
+          <label>Don't fill this out: <input name="bot-field" /></label>
+        </p>
+        <label>
+          <span>Your name</span>
+          <input type="text" name="name" required />
+        </label>
+        <label>
+          <span>Email</span>
+          <input type="email" name="email" required />
+        </label>
+        <label>
+          <span>What's up?</span>
+          <textarea name="message" rows="5" required></textarea>
+        </label>
+        <button type="submit" class="btn btn--primary btn--block">Send it</button>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Netlify redirects here with ?sent=1 after a successful submission.
+  if (new URLSearchParams(location.search).get('sent') === '1') {
+    document.querySelector('[data-contact-form]')?.setAttribute('hidden', '');
+    document.querySelector('[data-thanks]')?.removeAttribute('hidden');
+  }
+</script>
+
+<style>
+  .contact { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 5vw, 3.5rem); align-items: start; }
+
+  .contact__list { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1.2rem; margin: 1.5rem 0; }
+  .contact__list dt { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem; padding-top: 0.15rem; }
+  .contact__list dd { margin: 0; }
+  .contact__social { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .contact__note { font-size: 0.9rem; opacity: 0.75; max-width: 40ch; }
+
+  .contact__form { padding: clamp(1.3rem, 4vw, 2rem); }
+  .contact__form form { display: grid; gap: 1rem; }
+  .contact__form label { display: grid; gap: 0.3rem; }
+  .contact__form label > span { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .contact__form input,
+  .contact__form textarea { font: inherit; padding: 0.6rem 0.7rem; border: var(--border); border-radius: var(--radius); background: var(--paper); width: 100%; }
+  .contact__hp { position: absolute; left: -5000px; }
+  .contact__thanks { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
+
+  @media (max-width: 800px) { .contact { grid-template-columns: 1fr; } }
+</style>

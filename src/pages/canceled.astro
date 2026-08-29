@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Checkout canceled" description="Your checkout was canceled.">
+  <section class="section wrap outcome">
+    <span class="eyebrow">Checkout canceled</span>
+    <h1>No worries — nothing was charged.</h1>
+    <p>Your cart is still here whenever you're ready.</p>
+    <a class="btn btn--primary" href="/shop">Back to the shop →</a>
+  </section>
+</Base>
+
+<style>
+  .outcome { max-width: 52ch; text-align: center; margin-inline: auto; padding-block: clamp(3rem, 10vw, 6rem); }
+  .outcome p { margin-block: 1.2rem 1.8rem; }
+</style>

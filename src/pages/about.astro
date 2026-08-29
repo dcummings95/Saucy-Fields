@@ -1,0 +1,106 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { getAbout, getSiteSettings } from '../lib/keystatic';
+import { renderMarkdoc } from '../lib/markdoc';
+
+const about = await getAbout();
+const settings = await getSiteSettings();
+const storyHtml = renderMarkdoc(about.storyNode);
+---
+
+<Base title="About" description={about.intro}>
+  <section class="section wrap">
+    <SectionHeading eyebrow="Who we are" title={about.heading} as="h1">
+      <p>{about.intro}</p>
+    </SectionHeading>
+
+    <div class="about__top">
+      <div class="prose">
+        <Fragment set:html={storyHtml} />
+      </div>
+      {
+        about.image && (
+          <figure class="about__photo panel">
+            <img src={about.image} alt={about.imageAlt} width="1500" height="844" />
+          </figure>
+        )
+      }
+    </div>
+  </section>
+
+  {
+    about.founders.length > 0 && (
+      <section class="section section-invert">
+        <div class="wrap">
+          <SectionHeading eyebrow="The two of us" title="Isaac & Spencer" />
+          <div class="founders">
+            {about.founders.map((f) => (
+              <div class="founder panel">
+                {f.photo && <img class="founder__img" src={f.photo} alt={f.name} width="200" height="200" />}
+                <div>
+                  <h3>{f.name}</h3>
+                  <p class="founder__role">{f.role}</p>
+                  <p>{f.bio}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    about.process.length > 0 && (
+      <section class="section wrap">
+        <SectionHeading eyebrow="The work" title={about.processHeading} />
+        <ol class="process">
+          {about.process.map((step, i) => (
+            <li class="process__step">
+              <span class="process__num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{step.step}</h3>
+              <p>{step.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+
+  <section class="section--tight wrap">
+    <div class="here panel">
+      <h2>You'll find us in {settings.location.city}</h2>
+      <p>{settings.location.blurb}</p>
+      <a class="btn btn--primary" href="/contact">Get in touch →</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .about__top { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(1.5rem, 5vw, 3rem); align-items: start; }
+  .about__photo { overflow: hidden; margin: 0; }
+  .about__photo img { width: 100%; height: auto; display: block; }
+
+  .founders { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .founder { display: flex; gap: 1rem; padding: 1.3rem; color: var(--ink); }
+  .founder__img { width: 92px; height: 92px; object-fit: cover; border: 2.5px solid var(--ink); border-radius: 4px; flex-shrink: 0; }
+  .founder__role { font-family: var(--font-display); font-weight: 700; color: var(--saucy-dark); margin: 0.1rem 0 0.5rem; }
+  .founder h3 { margin: 0; }
+  .founder p:last-child { margin-bottom: 0; }
+
+  .process { list-style: none; counter-reset: step; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
+  .process__step { border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 1.3rem; }
+  .process__num { font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; color: var(--saucy); }
+  .process__step h3 { margin: 0.2rem 0 0.4rem; }
+  .process__step p { margin: 0; }
+
+  .here { padding: clamp(1.5rem, 5vw, 3rem); text-align: center; background: var(--mustard); }
+  .here p { max-width: 44ch; margin-inline: auto; margin-bottom: 1.2rem; }
+
+  @media (max-width: 820px) {
+    .about__top { grid-template-columns: 1fr; }
+    .founders { grid-template-columns: 1fr; }
+    .process { grid-template-columns: 1fr; }
+  }
+</style>

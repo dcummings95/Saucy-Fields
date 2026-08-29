@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The Astro Netlify adapter wires up the on-demand routes (Keystatic admin API and
+# /api/checkout) as functions automatically — no manual redirects needed here.

@@ -1,0 +1,29 @@
+{
+  "heroHeadline": "Merch that looks like the band sounds.",
+  "heroSubtext": "Saucy Fields is a two-person print shop in Winona, MN. We draw, design, and screen-print shirts and posters for local bands — and sell a few of our own along the way.",
+  "heroImage": "/images/brand/saucy-fields-header.jpg",
+  "heroImageAlt": "Isaac and Spencer of Saucy Fields",
+  "primaryCta": { "label": "Shop the merch", "href": "/shop" },
+  "secondaryCta": { "label": "Make merch with us", "href": "/services" },
+  "whatWeDoHeading": "What we do",
+  "whatWeDo": [
+    {
+      "title": "Draw it",
+      "body": "Hand-drawn artwork made for your record, your show, or your whole vibe. No clip art, no templates."
+    },
+    {
+      "title": "Print it",
+      "body": "Screen-printed shirts and posters, pulled in small runs so the quality stays high and the box stays light."
+    },
+    {
+      "title": "Move it",
+      "body": "We can run your merch table stock, sell it here on the site, or hand it off at the show. Whatever’s easiest."
+    }
+  ],
+  "bandsHeading": "Bands we’ve printed for",
+  "bands": [
+    { "name": "Winona Is Dead", "url": "" },
+    { "name": "Sugar Lads", "url": "" },
+    { "name": "Sleeping Jesus", "url": "" }
+  ]
+}

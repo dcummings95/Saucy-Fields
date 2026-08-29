@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { getServices, getSiteSettings } from '../lib/keystatic';
+import { renderMarkdoc } from '../lib/markdoc';
+
+const services = await getServices();
+const settings = await getSiteSettings();
+const bodyHtml = renderMarkdoc(services.bodyNode);
+const mailto = `mailto:${settings.email}?subject=${encodeURIComponent('Merch for my band')}`;
+---
+
+<Base title="Make merch with us" description={services.intro}>
+  <section class="section wrap">
+    <SectionHeading eyebrow="For bands" title={services.heading} as="h1">
+      <p>{services.intro}</p>
+    </SectionHeading>
+    <a class="btn btn--primary" href={mailto}>Start a project →</a>
+  </section>
+
+  {
+    services.offerings.length > 0 && (
+      <section class="section section-invert">
+        <div class="wrap">
+          <SectionHeading eyebrow="Services" title={services.offeringsHeading} />
+          <div class="offerings">
+            {services.offerings.map((o, i) => (
+              <div class="offering panel" style={`--tilt:${(i % 2 ? 1 : -1) * 0.6}deg`}>
+                <h3>{o.title}</h3>
+                <p>{o.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    services.steps.length > 0 && (
+      <section class="section wrap">
+        <SectionHeading eyebrow="The process" title={services.stepsHeading} />
+        <ol class="steps">
+          {services.steps.map((s, i) => (
+            <li>
+              <span class="steps__num">{i + 1}</span>
+              <div>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )
+  }
+
+  {bodyHtml && <section class="section--tight wrap"><div class="prose" set:html={bodyHtml} /></section>}
+
+  <section class="section wrap">
+    <div class="cta panel">
+      <h2>{services.ctaHeading}</h2>
+      <p>{services.ctaBody}</p>
+      <a class="btn btn--mustard" href={mailto}>Email {settings.email} →</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .offerings { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.4rem; }
+  .offering { padding: 1.4rem; transform: rotate(var(--tilt)); color: var(--ink); }
+  .offering h3 { margin-top: 0; }
+  .offering p { margin-bottom: 0; }
+
+  .steps { list-style: none; padding: 0; display: grid; gap: 1rem; max-width: 60ch; }
+  .steps li { display: flex; gap: 1rem; align-items: flex-start; border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow-sm); padding: 1.1rem 1.3rem; }
+  .steps__num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    background: var(--saucy);
+    color: var(--paper);
+    width: 2rem; height: 2rem;
+    display: grid; place-items: center;
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .steps h3 { margin: 0 0 0.3rem; }
+  .steps p { margin: 0; }
+
+  .cta { padding: clamp(1.5rem, 5vw, 3rem); text-align: center; background: var(--saucy); color: var(--paper); }
+  .cta p { max-width: 44ch; margin-inline: auto; margin-bottom: 1.3rem; }
+
+  @media (max-width: 760px) { .offerings { grid-template-columns: 1fr; } }
+</style>

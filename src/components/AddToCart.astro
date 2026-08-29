@@ -1,0 +1,94 @@
+---
+import { usd } from '../lib/format';
+import type { ProductEntry } from '../lib/keystatic';
+
+interface Props {
+  product: ProductEntry;
+}
+const { product } = Astro.props;
+const soldOut = product.status === 'soldout';
+const payload = {
+  slug: product.slug,
+  name: product.name,
+  price: product.price,
+  image: product.images[0]?.src ?? '',
+};
+---
+
+<form class="atc" data-atc data-product={JSON.stringify(payload)}>
+  {
+    product.sizes.length > 0 && (
+      <label class="atc__field">
+        <span>Size</span>
+        <select name="size" required>
+          <option value="" disabled selected>Choose a size</option>
+          {product.sizes.map((s) => <option value={s}>{s}</option>)}
+        </select>
+      </label>
+    )
+  }
+
+  {
+    product.colors.length > 0 && (
+      <label class="atc__field">
+        <span>Color</span>
+        <select name="color" required>
+          <option value="" disabled selected>Choose a color</option>
+          {product.colors.map((c) => <option value={c}>{c}</option>)}
+        </select>
+      </label>
+    )
+  }
+
+  <div class="atc__field atc__field--qty">
+    <span>Qty</span>
+    <input type="number" name="qty" value="1" min="1" max="99" inputmode="numeric" />
+  </div>
+
+  <button type="submit" class="btn btn--primary btn--block atc__submit" disabled={soldOut}>
+    {soldOut ? 'Sold out' : `Add to cart · ${usd(product.price)}`}
+  </button>
+  <p class="atc__msg" data-atc-msg hidden>Added to cart ✓</p>
+</form>
+
+<style>
+  .atc { display: grid; gap: 0.9rem; margin-top: 1.5rem; }
+  .atc__field { display: grid; gap: 0.3rem; }
+  .atc__field > span { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .atc select,
+  .atc input {
+    font: inherit;
+    padding: 0.6rem 0.7rem;
+    border: var(--border);
+    border-radius: var(--radius);
+    background: var(--paper);
+  }
+  .atc__field--qty input { width: 5rem; }
+  .atc__submit { margin-top: 0.3rem; font-size: 1.05rem; }
+  .atc__msg { font-family: var(--font-display); font-weight: 700; color: var(--saucy-dark); margin: 0; }
+  .atc__msg[hidden] { display: none; }
+</style>
+
+<script>
+  import { addToCart } from '../lib/cart';
+
+  document.querySelectorAll('[data-atc]').forEach((formEl) => {
+    if (!(formEl instanceof HTMLFormElement)) return;
+    const product = JSON.parse(formEl.dataset.product ?? '{}');
+    const msg = formEl.querySelector('[data-atc-msg]');
+
+    formEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = new FormData(formEl);
+      const size = (data.get('size') as string) || null;
+      const color = (data.get('color') as string) || null;
+      const qty = Math.max(1, Math.min(99, Number(data.get('qty')) || 1));
+
+      addToCart({ slug: product.slug, name: product.name, price: product.price, image: product.image, size, color }, qty);
+
+      msg?.removeAttribute('hidden');
+      window.dispatchEvent(new CustomEvent('saucy:open-cart'));
+      setTimeout(() => msg?.setAttribute('hidden', ''), 2500);
+    });
+  });
+</script>

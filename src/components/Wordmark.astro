@@ -1,0 +1,48 @@
+---
+/** Text wordmark standing in for the hand-lettered Saucy Fields logo. */
+interface Props {
+  size?: 'sm' | 'lg';
+}
+const { size = 'sm' } = Astro.props;
+const letters = 'Saucy'.split('').map((c) => ({ c, w: 'a' }));
+const letters2 = 'Fields'.split('').map((c) => ({ c, w: 'b' }));
+---
+
+<span class:list={['wordmark', `wordmark--${size}`]}>
+  <span class="wordmark__word">
+    {letters.map(({ c }, i) => <span class="wordmark__l" style={`--i:${i}`}>{c}</span>)}
+  </span>
+  <span class="wordmark__word wordmark__word--2">
+    {letters2.map(({ c }, i) => <span class="wordmark__l" style={`--i:${i}`}>{c}</span>)}
+  </span>
+</span>
+
+<style>
+  .wordmark {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.35em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    color: var(--saucy);
+    line-height: 0.85;
+    letter-spacing: -0.01em;
+    text-transform: lowercase;
+    -webkit-text-stroke: 1.5px var(--ink);
+    paint-order: stroke fill;
+  }
+  .wordmark--sm { font-size: 1.7rem; }
+  .wordmark--lg { font-size: clamp(3rem, 12vw, 7rem); }
+
+  .wordmark__word { display: inline-flex; }
+  .wordmark__l {
+    display: inline-block;
+    transform: rotate(calc((var(--i) - 2) * 2.4deg));
+  }
+  .wordmark__word--2 .wordmark__l { color: var(--ink); -webkit-text-stroke: 0; }
+
+  @media (max-width: 400px) {
+    .wordmark--sm { font-size: 1.4rem; }
+  }
+</style>

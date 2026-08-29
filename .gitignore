@@ -1,0 +1,25 @@
+# build output
+dist/
+.netlify/
+.vercel/
+
+# dependencies
+node_modules/
+
+# astro
+.astro/
+
+# generated at every build/dev start by the saucy-catalog integration
+src/data/catalog.json
+
+# environment
+.env
+.env.production
+.env*.local
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+.claude/
+.vscode/

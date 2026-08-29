@@ -1,0 +1,156 @@
+---
+import Wordmark from './Wordmark.astro';
+
+interface Props {
+  settings: { businessName: string };
+}
+const { settings } = Astro.props;
+const path = Astro.url.pathname;
+const nav = [
+  { href: '/shop', label: 'Shop' },
+  { href: '/about', label: 'About' },
+  { href: '/services', label: 'Make merch' },
+  { href: '/contact', label: 'Contact' },
+];
+const isActive = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a href="/" class="site-header__brand" aria-label={`${settings.businessName} — home`}>
+      <Wordmark />
+    </a>
+
+    <button class="site-header__menu" aria-expanded="false" aria-controls="site-nav">
+      <span class="visually-hidden">Menu</span>
+      <span class="site-header__burger" aria-hidden="true"></span>
+    </button>
+
+    <nav id="site-nav" class="site-nav" aria-label="Primary">
+      {
+        nav.map((item) => (
+          <a href={item.href} class:list={['site-nav__link', { 'is-active': isActive(item.href) }]}>
+            {item.label}
+          </a>
+        ))
+      }
+      <button type="button" class="site-nav__cart" data-open-cart>
+        Cart <span class="site-nav__count" data-cart-count>0</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--paper);
+    border-bottom: 2.5px solid var(--ink);
+  }
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.7rem;
+  }
+  .site-header__brand { display: block; flex-shrink: 0; }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.75rem, 2vw, 1.6rem);
+  }
+  .site-nav__link {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--ink);
+    padding: 0.2rem 0;
+    border-bottom: 3px solid transparent;
+  }
+  .site-nav__link:hover { border-bottom-color: var(--mustard); }
+  .site-nav__link.is-active { border-bottom-color: var(--saucy); }
+
+  .site-nav__cart {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--saucy);
+    color: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+  .site-nav__cart:hover { transform: translate(-1px, -1px); }
+  .site-nav__count {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    display: inline-grid;
+    place-items: center;
+    font-size: 0.8rem;
+    padding-inline: 0.3rem;
+  }
+
+  .site-header__menu {
+    display: none;
+    background: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--radius);
+    width: 2.6rem;
+    height: 2.6rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+  }
+  .site-header__burger,
+  .site-header__burger::before,
+  .site-header__burger::after {
+    display: block;
+    width: 1.2rem;
+    height: 2.5px;
+    background: var(--ink);
+    margin-inline: auto;
+    position: relative;
+    content: '';
+  }
+  .site-header__burger::before { position: absolute; top: -6px; }
+  .site-header__burger::after { position: absolute; top: 6px; }
+
+  @media (max-width: 800px) {
+    .site-header__menu { display: block; }
+    .site-nav {
+      position: absolute;
+      inset: 100% 0 auto 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      background: var(--paper);
+      border-bottom: 2.5px solid var(--ink);
+      padding: 0.5rem var(--gap) 1rem;
+      display: none;
+    }
+    .site-nav.is-open { display: flex; }
+    .site-nav__link { padding-block: 0.7rem; border-bottom: 2px solid var(--paper-2); }
+    .site-nav__link.is-active { border-bottom-color: var(--saucy); }
+    .site-nav__cart { margin-top: 0.7rem; justify-content: center; }
+  }
+</style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.site-header__menu');
+  const nav = document.querySelector<HTMLElement>('#site-nav');
+  btn?.addEventListener('click', () => {
+    const open = nav?.classList.toggle('is-open') ?? false;
+    btn.setAttribute('aria-expanded', String(open));
+  });
+</script>

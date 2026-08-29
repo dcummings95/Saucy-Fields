@@ -1,0 +1,80 @@
+---
+import { usd } from '../lib/format';
+import type { ProductEntry } from '../lib/keystatic';
+
+interface Props {
+  product: ProductEntry;
+  index?: number;
+}
+const { product, index = 0 } = Astro.props;
+const image = product.images[0];
+const onSale = product.compareAtPrice != null && product.compareAtPrice > product.price;
+const tilt = [(index % 3) - 1] // -1, 0, 1 rotating
+  .map((t) => t * 0.8)[0];
+---
+
+<a class="card" href={`/shop/${product.slug}`} style={`--tilt:${tilt}deg`}>
+  <div class="card__frame">
+    {
+      image ? (
+        <img class="card__img" src={image.src} alt={image.alt} width="600" height="800" loading={index < 4 ? 'eager' : 'lazy'} />
+      ) : (
+        <div class="card__img card__img--empty">No photo yet</div>
+      )
+    }
+    <div class="card__tags">
+      {product.status === 'presale' && <span class="tag tag--presale">Pre-sale</span>}
+      {product.status === 'soldout' && <span class="tag tag--soldout">Sold out</span>}
+      {onSale && product.status === 'available' && <span class="tag tag--sale">Sale</span>}
+    </div>
+  </div>
+  <div class="card__meta">
+    <span class="card__band">{product.band || ' '}</span>
+    <h3 class="card__name">{product.name}</h3>
+    <p class="card__price">
+      {onSale && <span class="card__was">{usd(product.compareAtPrice!)}</span>}
+      <span>{usd(product.price)}</span>
+    </p>
+  </div>
+</a>
+
+<style>
+  .card {
+    display: block;
+    text-decoration: none;
+    color: var(--ink);
+    transform: rotate(var(--tilt));
+    transition: transform 0.12s ease;
+  }
+  .card:hover { transform: rotate(0deg) translateY(-3px); }
+  .card:hover .card__frame { box-shadow: 7px 7px 0 var(--ink); }
+
+  .card__frame {
+    position: relative;
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    background: var(--paper-2);
+    aspect-ratio: 3 / 4;
+  }
+  .card__img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .card__img--empty { display: grid; place-items: center; font-family: var(--font-display); opacity: 0.5; }
+
+  .card__tags { position: absolute; top: 0.6rem; left: 0.6rem; display: flex; gap: 0.35rem; }
+
+  .card__meta { padding: 0.7rem 0.2rem 0; }
+  .card__band {
+    display: block;
+    min-height: 1.1em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--saucy-dark);
+  }
+  .card__name { font-size: 1.15rem; margin: 0.1rem 0 0.25rem; line-height: 1.1; }
+  .card__price { font-family: var(--font-display); font-weight: 700; margin: 0; display: flex; gap: 0.5rem; }
+  .card__was { text-decoration: line-through; opacity: 0.5; font-weight: 500; }
+</style>

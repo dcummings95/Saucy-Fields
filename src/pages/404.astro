@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Page not found">
+  <section class="section wrap outcome">
+    <span class="eyebrow">404</span>
+    <h1>That page pulled a blank.</h1>
+    <p>The link's broken or the page moved. Try the shop.</p>
+    <a class="btn btn--primary" href="/shop">Go to the shop →</a>
+  </section>
+</Base>
+
+<style>
+  .outcome { max-width: 52ch; text-align: center; margin-inline: auto; padding-block: clamp(3rem, 10vw, 6rem); }
+  .outcome p { margin-block: 1.2rem 1.8rem; }
+</style>

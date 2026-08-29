@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { getPages, getPage } from '../lib/keystatic';
+import { renderMarkdoc } from '../lib/markdoc';
+
+export async function getStaticPaths() {
+  const pages = await getPages();
+  return pages.map((p) => ({ params: { page: p.slug } }));
+}
+
+const { page } = Astro.params;
+const entry = await getPage(page!);
+if (!entry) return Astro.redirect('/');
+
+const html = renderMarkdoc(entry.contentNode);
+---
+
+<Base title={entry.title} description={entry.description}>
+  <section class="section wrap page">
+    <h1>{entry.title}</h1>
+    <div class="prose" set:html={html} />
+  </section>
+</Base>
+
+<style>
+  .page { max-width: 68ch; }
+  .page h1 { margin-bottom: 1.5rem; }
+</style>

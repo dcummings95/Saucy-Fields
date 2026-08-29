@@ -1,0 +1,147 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import ProductCard from '../components/ProductCard.astro';
+import { getHomepage, getProducts } from '../lib/keystatic';
+
+const home = await getHomepage();
+const products = await getProducts();
+const featured = products.filter((p) => p.featured);
+const featuredList = [...featured, ...products.filter((p) => !featured.includes(p))].slice(0, 4);
+---
+
+<Base description={home.heroSubtext}>
+  <section class="hero">
+    <div class="wrap hero__inner">
+      <div class="hero__text">
+        <span class="eyebrow">Winona, MN · screen-print shop</span>
+        <h1>{home.heroHeadline}</h1>
+        <p class="hero__sub">{home.heroSubtext}</p>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href={home.primaryCta.href}>{home.primaryCta.label}</a>
+          <a class="btn" href={home.secondaryCta.href}>{home.secondaryCta.label}</a>
+        </div>
+      </div>
+      {
+        home.heroImage && (
+          <div class="hero__img panel">
+            <img src={home.heroImage} alt={home.heroImageAlt} width="1500" height="844" fetchpriority="high" />
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section--tight wrap">
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        {
+          Array.from({ length: 2 }).map(() => (
+            <span>Shirts&nbsp;✦&nbsp;Posters&nbsp;✦&nbsp;Album art&nbsp;✦&nbsp;Show flyers&nbsp;✦&nbsp;Merch tables&nbsp;✦&nbsp;</span>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <SectionHeading eyebrow="From the shop" title="Fresh off the press" />
+    <div class="grid">
+      {featuredList.map((p, i) => <ProductCard product={p} index={i} />)}
+    </div>
+    <p class="more"><a class="btn" href="/shop">See everything in the shop →</a></p>
+  </section>
+
+  <section class="section section-invert">
+    <div class="wrap">
+      <SectionHeading eyebrow="What we do" title={home.whatWeDoHeading} />
+      <div class="what">
+        {
+          home.whatWeDo.map((item, i) => (
+            <div class="what__item panel" style={`--tilt:${(i % 2 ? 1 : -1) * 0.7}deg`}>
+              <span class="what__num">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <SectionHeading eyebrow="Good company" title={home.bandsHeading} />
+    <ul class="bands">
+      {
+        home.bands.map((b) =>
+          b.url ? (
+            <li>
+              <a href={b.url} target="_blank" rel="noopener">{b.name}</a>
+            </li>
+          ) : (
+            <li>{b.name}</li>
+          ),
+        )
+      }
+    </ul>
+    <div class="cta panel">
+      <h2>In a band? Let's make your merch.</h2>
+      <p>Art, print, and delivery handled — so you show up to the show with a full table.</p>
+      <a class="btn btn--mustard" href="/services">How it works →</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding-block: clamp(1.75rem, 4vw, 3rem); }
+  .hero__inner { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(1.5rem, 5vw, 3.5rem); align-items: center; }
+  .hero__sub { font-size: 1.15rem; max-width: 44ch; margin-block: 1.2rem 1.6rem; }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .hero__img { align-self: start; }
+  .hero__img img { width: 100%; height: auto; }
+
+  .marquee {
+    overflow: hidden;
+    border-block: 2.5px solid var(--ink);
+    padding-block: 0.6rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    background: var(--mustard);
+  }
+  .marquee__track {
+    display: inline-flex;
+    white-space: nowrap;
+    animation: marquee 26s linear infinite;
+  }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track { animation: none; }
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1rem, 3vw, 1.8rem); align-items: start; }
+  .more { margin-top: 2rem; }
+
+  .what { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+  .what__item { padding: 1.4rem; transform: rotate(var(--tilt)); color: var(--ink); }
+  .what__num { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; color: var(--saucy); }
+  .what__item h3 { margin: 0.3rem 0 0.5rem; }
+  .what__item p { margin: 0; }
+
+  .bands { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.8rem; font-family: var(--font-display); font-weight: 700; }
+  .bands li { border: 2.5px solid var(--ink); border-radius: 999px; padding: 0.4rem 1rem; background: var(--paper); }
+  .bands a { text-decoration: none; color: var(--ink); }
+
+  .cta { margin-top: 2.5rem; padding: clamp(1.5rem, 5vw, 3rem); text-align: center; background: var(--saucy); color: var(--paper); }
+  .cta h2 { margin-bottom: 0.5rem; }
+  .cta p { max-width: 40ch; margin-inline: auto; margin-bottom: 1.3rem; }
+
+  @media (max-width: 900px) {
+    .hero__inner { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .what { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,104 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductGallery from '../../components/ProductGallery.astro';
+import AddToCart from '../../components/AddToCart.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getProducts, getProduct } from '../../lib/keystatic';
+import { renderMarkdoc } from '../../lib/markdoc';
+import { usd } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const product = await getProduct(slug!);
+if (!product) return Astro.redirect('/shop');
+
+const all = await getProducts();
+const related = all.filter((p) => p.slug !== product.slug && (p.band === product.band || p.type === product.type)).slice(0, 4);
+const descriptionHtml = renderMarkdoc(product.descriptionNode);
+const onSale = product.compareAtPrice != null && product.compareAtPrice > product.price;
+const seo = product.seoDescription || product.shortDescription || `${product.name} — screen-printed by Saucy Fields.`;
+---
+
+<Base title={product.name} description={seo} image={product.images[0]?.src}>
+  <nav class="crumbs wrap"><a href="/shop">← Back to shop</a></nav>
+
+  <article class="product wrap">
+    <ProductGallery images={product.images} name={product.name} />
+
+    <div class="product__info">
+      {product.band && <span class="product__band">{product.band}</span>}
+      <h1>{product.name}</h1>
+
+      <p class="product__price">
+        {onSale && <span class="product__was">{usd(product.compareAtPrice!)}</span>}
+        <span>{usd(product.price)}</span>
+        {product.status === 'presale' && <span class="tag tag--presale">Pre-sale</span>}
+        {product.status === 'soldout' && <span class="tag tag--soldout">Sold out</span>}
+      </p>
+
+      {product.shortDescription && <p class="product__lede">{product.shortDescription}</p>}
+
+      <AddToCart product={product} />
+
+      {descriptionHtml && <div class="prose product__desc" set:html={descriptionHtml} />}
+    </div>
+  </article>
+
+  {
+    related.length > 0 && (
+      <section class="section wrap">
+        <h2>More like this</h2>
+        <div class="related">
+          {related.map((p, i) => (
+            <ProductCard product={p} index={i} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .crumbs { padding-top: 1.5rem; font-family: var(--font-display); font-weight: 700; }
+  .crumbs a { text-decoration: none; }
+
+  .product {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.5rem, 5vw, 3.5rem);
+    padding-block: 2rem clamp(3rem, 8vw, 5rem);
+    align-items: start;
+  }
+  .product__band {
+    font-family: var(--font-display);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--saucy-dark);
+    font-size: 0.85rem;
+  }
+  .product__price {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0.5rem 0 0.8rem;
+  }
+  .product__was { text-decoration: line-through; opacity: 0.45; font-weight: 500; }
+  .product__lede { font-size: 1.1rem; }
+  .product__desc { margin-top: 2rem; border-top: 2.5px solid var(--ink); padding-top: 1.5rem; }
+
+  .related { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1rem, 3vw, 1.8rem); margin-top: 1.5rem; }
+
+  @media (max-width: 860px) {
+    .product { grid-template-columns: 1fr; }
+    .related { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) { .related { grid-template-columns: 1fr; } }
+</style>

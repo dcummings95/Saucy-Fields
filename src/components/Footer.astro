@@ -1,0 +1,101 @@
+---
+import Wordmark from './Wordmark.astro';
+import { getPages } from '../lib/keystatic';
+
+interface Props {
+  settings: {
+    businessName: string;
+    tagline: string;
+    email: string;
+    location: { city: string; region: string };
+    social: { instagram: string; tiktok: string; facebook: string };
+  };
+}
+const { settings } = Astro.props;
+const pages = (await getPages()).filter((p) => p.showInFooter);
+const year = new Date().getFullYear();
+
+const social = [
+  { label: 'Instagram', href: settings.social.instagram },
+  { label: 'TikTok', href: settings.social.tiktok },
+  { label: 'Facebook', href: settings.social.facebook },
+].filter((s) => s.href);
+---
+
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    <div class="site-footer__brand">
+      <Wordmark />
+      <p>{settings.tagline}</p>
+      <p class="site-footer__loc">{settings.location.city}, {settings.location.region}</p>
+    </div>
+
+    <nav class="site-footer__col" aria-label="Site">
+      <h2>Site</h2>
+      <a href="/shop">Shop</a>
+      <a href="/about">About</a>
+      <a href="/services">Make merch with us</a>
+      <a href="/contact">Contact</a>
+      {pages.map((p) => <a href={`/${p.slug}`}>{p.title}</a>)}
+    </nav>
+
+    <div class="site-footer__col">
+      <h2>Elsewhere</h2>
+      {social.map((s) => <a href={s.href} rel="me noopener" target="_blank">{s.label}</a>)}
+      <a href={`mailto:${settings.email}`}>{settings.email}</a>
+    </div>
+  </div>
+
+  <div class="wrap site-footer__legal">
+    <span>© {year} {settings.businessName}</span>
+    <a href="/keystatic">Team login</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: auto;
+    background: var(--ink);
+    color: var(--paper);
+    border-top: 2.5px solid var(--ink);
+  }
+  /* keep the "fields" half of the wordmark legible on the dark footer */
+  .site-footer :global(.wordmark__word--2 .wordmark__l) {
+    color: var(--paper);
+    -webkit-text-stroke: 0;
+  }
+  .site-footer__inner {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 2rem;
+    padding-block: clamp(2.5rem, 6vw, 4rem);
+  }
+  .site-footer__brand p { margin: 0.75rem 0 0; max-width: 32ch; color: var(--paper-2); }
+  .site-footer__loc { font-family: var(--font-display); font-weight: 700; color: var(--mustard) !important; }
+  .site-footer__col h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--mustard);
+    margin-bottom: 0.9rem;
+  }
+  .site-footer__col a { display: block; color: var(--paper); text-decoration: none; padding-block: 0.3rem; }
+  .site-footer__col a:hover { color: var(--mustard); }
+
+  .site-footer__legal {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1rem;
+    border-top: 1px solid rgba(var(--paper-rgb), 0.2);
+    font-size: 0.85rem;
+    font-family: var(--font-display);
+  }
+  .site-footer__legal a { color: var(--paper-2); text-decoration: none; }
+  .site-footer__legal a:hover { color: var(--mustard); }
+
+  @media (max-width: 700px) {
+    .site-footer__inner { grid-template-columns: 1fr 1fr; }
+    .site-footer__brand { grid-column: 1 / -1; }
+  }
+</style>

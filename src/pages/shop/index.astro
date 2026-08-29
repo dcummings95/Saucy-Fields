@@ -1,0 +1,113 @@
+---
+import Base from '../../layouts/Base.astro';
+import SectionHeading from '../../components/SectionHeading.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getProducts } from '../../lib/keystatic';
+
+const products = await getProducts();
+
+const types = [...new Set(products.map((p) => p.type))];
+const typeLabels: Record<string, string> = { shirt: 'Shirts', poster: 'Posters', other: 'Other' };
+const bands = [...new Set(products.map((p) => p.band).filter(Boolean))].sort();
+---
+
+<Base title="Shop" description="Screen-printed shirts and posters from Saucy Fields and the bands we print for.">
+  <section class="section wrap">
+    <SectionHeading eyebrow="The shop" title="Everything we're printing right now" as="h1">
+      <p>Small runs, hand-drawn art. When something sells out we note it — sometimes we reprint.</p>
+    </SectionHeading>
+
+    <div class="filters" data-filters>
+      <div class="filters__group" role="group" aria-label="Filter by type">
+        <button class="chip is-active" data-filter-type="all">All</button>
+        {types.map((t) => <button class="chip" data-filter-type={t}>{typeLabels[t] ?? t}</button>)}
+      </div>
+      {
+        bands.length > 0 && (
+          <div class="filters__group" role="group" aria-label="Filter by band">
+            <button class="chip is-active" data-filter-band="all">All bands</button>
+            {bands.map((b) => <button class="chip" data-filter-band={b}>{b}</button>)}
+          </div>
+        )
+      }
+    </div>
+
+    <div class="grid" data-grid>
+      {
+        products.map((p, i) => (
+          <div class="grid__item" data-type={p.type} data-band={p.band || ''}>
+            <ProductCard product={p} index={i} />
+          </div>
+        ))
+      }
+    </div>
+    <p class="empty" data-empty hidden>Nothing matches that combo. <button class="chip" data-reset>Clear filters</button></p>
+  </section>
+</Base>
+
+<style>
+  .filters { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+  .filters__group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .chip {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.9rem;
+    border: 2.5px solid var(--ink);
+    border-radius: 999px;
+    background: var(--paper);
+    cursor: pointer;
+  }
+  .chip.is-active { background: var(--ink); color: var(--paper); }
+  .chip:hover:not(.is-active) { background: var(--mustard); }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1rem, 3vw, 1.8rem); }
+  .grid__item[hidden] { display: none; }
+  .empty { margin-top: 2rem; font-family: var(--font-display); font-weight: 700; }
+
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  const root = document.querySelector('[data-filters]');
+  const items = [...document.querySelectorAll<HTMLElement>('.grid__item')];
+  const emptyEl = document.querySelector<HTMLElement>('[data-empty]');
+  let activeType = 'all';
+  let activeBand = 'all';
+
+  function apply() {
+    let shown = 0;
+    for (const item of items) {
+      const okType = activeType === 'all' || item.dataset.type === activeType;
+      const okBand = activeBand === 'all' || item.dataset.band === activeBand;
+      const show = okType && okBand;
+      item.hidden = !show;
+      if (show) shown++;
+    }
+    emptyEl?.toggleAttribute('hidden', shown !== 0);
+  }
+
+  root?.addEventListener('click', (e) => {
+    const btn = e.target;
+    if (!(btn instanceof HTMLElement)) return;
+    if (btn.dataset.filterType) {
+      activeType = btn.dataset.filterType;
+      root.querySelectorAll('[data-filter-type]').forEach((b) => b.classList.toggle('is-active', b === btn));
+    }
+    if (btn.dataset.filterBand) {
+      activeBand = btn.dataset.filterBand;
+      root.querySelectorAll('[data-filter-band]').forEach((b) => b.classList.toggle('is-active', b === btn));
+    }
+    apply();
+  });
+
+  document.querySelector('[data-reset]')?.addEventListener('click', () => {
+    activeType = 'all';
+    activeBand = 'all';
+    document.querySelectorAll('[data-filter-type], [data-filter-band]').forEach((b) =>
+      b.classList.toggle('is-active', b.dataset.filterType === 'all' || b.dataset.filterBand === 'all'),
+    );
+    apply();
+  });
+</script>

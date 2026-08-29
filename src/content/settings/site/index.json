@@ -1,0 +1,22 @@
+{
+  "businessName": "Saucy Fields",
+  "tagline": "Hand-drawn, screen-printed merch for local bands.",
+  "announcement": {
+    "enabled": true,
+    "text": "Winona Is Dead — “Fire On The Water” show poster pre-sale is live",
+    "link": "/shop/winona-is-dead-fire-on-the-water-poster"
+  },
+  "location": {
+    "city": "Winona",
+    "region": "Minnesota",
+    "blurb": "Printing out of Winona, MN. Local pickup and drop-off around town — shipping anywhere else."
+  },
+  "email": "fieldsofsauce@gmail.com",
+  "shippingNote": "Flat-rate shipping in the US. Local pickup in the Winona area is free — just pick that option at checkout or send us a note.",
+  "shippingFlatRate": 6,
+  "social": {
+    "instagram": "https://www.instagram.com/saucy.fields/",
+    "tiktok": "https://www.tiktok.com/@saucyfields",
+    "facebook": "https://www.facebook.com/profile.php?id=61553063294535"
+  }
+}
