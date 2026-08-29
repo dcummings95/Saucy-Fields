@@ -15,7 +15,9 @@ interface Props {
 }
 
 const settings = await getSiteSettings();
-const { title, description, image = '/images/brand/saucy-fields-header.jpg' } = Astro.props;
+// Default social-share image. A standalone file (not managed by Keystatic) so it
+// never disappears when someone re-saves an image field in the CMS.
+const { title, description, image = '/og-image.jpg' } = Astro.props;
 
 const pageTitle = title ? `${title} — ${settings.businessName}` : `${settings.businessName} — ${settings.tagline}`;
 const pageDescription = description ?? settings.tagline;

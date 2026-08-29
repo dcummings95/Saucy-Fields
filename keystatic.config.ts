@@ -270,8 +270,10 @@ export default config({
         }),
         image: fields.image({
           label: 'Photo',
-          directory: 'public/images/brand',
-          publicPath: '/images/brand/',
+          // Own directory: Keystatic names saved images after the field key, so
+          // keeping this apart from the homepage hero avoids any filename clash.
+          directory: 'public/images/about',
+          publicPath: '/images/about/',
         }),
         imageAlt: fields.text({ label: 'Photo alt text', defaultValue: 'Isaac and Spencer of Saucy Fields' }),
         founders: fields.array(

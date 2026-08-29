@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import react from '@astrojs/react';
 import keystatic from '@keystatic/astro';
 import netlify from '@astrojs/netlify';
+import node from '@astrojs/node';
 import keystaticConfig from './keystatic.config.ts';
 
 /**
@@ -53,9 +54,14 @@ function saucyCatalog() {
   };
 }
 
+// On-demand routes (Keystatic admin API, /api/checkout) need an adapter in dev too.
+// Use the plain Node adapter for `astro dev` — the Netlify adapter tries to boot a
+// Deno-based edge-functions emulator locally, which errors out. Build uses Netlify.
+const adapter = process.argv.includes('dev') ? node({ mode: 'standalone' }) : netlify();
+
 export default defineConfig({
   site: 'https://www.saucyfields.com',
-  adapter: netlify(),
+  adapter,
   integrations: [react(), keystatic(), saucyCatalog()],
   image: {
     domains: ['images.squarespace-cdn.com', 'static1.squarespace.com'],
