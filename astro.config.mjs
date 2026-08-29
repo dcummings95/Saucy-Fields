@@ -53,15 +53,9 @@ function saucyCatalog() {
   };
 }
 
-// The Netlify adapter spins up a full Netlify runtime emulation in `astro dev`
-// (edge-function/Deno server, Blobs) which is noisy and needs Deno on PATH. We
-// only need it for `astro build`, so skip it during local dev — on-demand routes
-// (Keystatic admin, /api/checkout) still work in Astro's own dev server.
-const isDev = process.argv.includes('dev');
-
 export default defineConfig({
   site: 'https://www.saucyfields.com',
-  adapter: isDev ? undefined : netlify(),
+  adapter: netlify(),
   integrations: [react(), keystatic(), saucyCatalog()],
   image: {
     domains: ['images.squarespace-cdn.com', 'static1.squarespace.com'],

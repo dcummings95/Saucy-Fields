@@ -3,20 +3,22 @@ import { config, collection, singleton, fields } from '@keystatic/core';
 /**
  * Keystatic CMS configuration.
  *
- * Storage:
- *  - local  (default)  -> edits write straight to files in this repo. Used in dev.
- *  - github            -> Isaac/Spencer log in at /keystatic with GitHub and their
- *                          edits are committed to the repo, triggering a rebuild.
+ * This file runs BOTH on the server (build-time content reads) and in the browser
+ * (the /keystatic admin UI), so it can only use `import.meta.env.DEV` / `.PROD` —
+ * never `process.env` (that throws "process is not defined" in the browser).
  *
- * Flip via KEYSTATIC_STORAGE_KIND (see .env.example / HANDOFF.md).
+ * Storage:
+ *  - `astro dev`   -> local mode: edits at /keystatic write straight to files here.
+ *  - production     -> GitHub mode: Isaac/Spencer sign in with GitHub at /keystatic
+ *                      and their edits are committed to the repo, triggering a deploy.
+ *
+ * To test GitHub mode locally, temporarily force `kind: 'github'` below.
  */
-const storage =
-  process.env.KEYSTATIC_STORAGE_KIND === 'github'
-    ? ({
-        kind: 'github',
-        repo: (process.env.KEYSTATIC_GITHUB_REPO ?? 'owner/saucy-fields') as `${string}/${string}`,
-      } as const)
-    : ({ kind: 'local' } as const);
+const GITHUB_REPO = 'dcummings95/saucy-fields' as const;
+
+const storage = import.meta.env.DEV
+  ? ({ kind: 'local' } as const)
+  : ({ kind: 'github', repo: GITHUB_REPO } as const);
 
 const productImage = (label: string) =>
   fields.image({
