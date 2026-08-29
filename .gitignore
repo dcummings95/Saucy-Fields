@@ -23,3 +23,8 @@ Thumbs.db
 *.log
 .claude/
 .vscode/
+
+# project docs — keep local, not in the repo
+README.md
+HANDOFF.md
+*.local.md
