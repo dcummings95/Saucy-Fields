@@ -61,7 +61,8 @@ const { settings } = Astro.props;
   .cart__x { background: none; border: 0; font-size: 1.2rem; cursor: pointer; padding: 0.3rem; }
 
   .cart__body { flex: 1; overflow-y: auto; padding: 1rem 1.2rem; }
-  .cart__empty { text-align: center; color: var(--ink); opacity: 0.7; margin-top: 2rem; }
+  .cart__empty { text-align: center; margin-top: 2.5rem; }
+  .cart__empty p { color: var(--ink); opacity: 0.7; margin: 0 0 1.3rem; }
 
   .cart-line { display: grid; grid-template-columns: 64px 1fr auto; gap: 0.8rem; padding-block: 0.9rem; border-bottom: 2px solid var(--paper-2); }
   .cart-line__img { width: 64px; height: 64px; object-fit: cover; border: 2px solid var(--ink); border-radius: 4px; background: var(--paper-2); }
@@ -110,7 +111,11 @@ const { settings } = Astro.props;
 
     if (!body) return;
     if (lines.length === 0) {
-      body.innerHTML = '<p class="cart__empty">Nothing in the cart yet.<br>Go find something good.</p>';
+      body.innerHTML = `
+        <div class="cart__empty">
+          <p>Nothing in the cart yet.<br>Go find something good.</p>
+          <a class="btn btn--primary" href="/shop" data-close-cart>Browse the shop</a>
+        </div>`;
       foot?.setAttribute('hidden', '');
       return;
     }
