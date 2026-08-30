@@ -1,8 +1,9 @@
 {
-  "heroHeadline": "Merch that looks like the band sounds.",
+  "heroHeadline": "Hand‑drawn. Hand‑pulled. A little saucy.",
   "heroSubtext": "Saucy Fields is a two-person print shop in Winona, MN. We draw, design, and screen-print shirts and posters for local bands — and sell a few of our own along the way.",
-  "heroImage": "/images/brand/heroImage.jpg",
-  "heroImageAlt": "Isaac and Spencer of Saucy Fields",
+  "heroImage": "/images/brand/saucy-hero.jpg",
+  "heroImageMobile": "/images/brand/saucy-hero-mobile.jpg",
+  "heroImageAlt": "Isaac and Spencer of Saucy Fields against a mustard-yellow backdrop",
   "primaryCta": {
     "label": "Shop the merch",
     "href": "/shop"

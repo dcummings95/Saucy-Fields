@@ -215,8 +215,9 @@ export default config({
       schema: {
         heroHeadline: fields.text({
           label: 'Hero headline',
+          description: 'The last word renders in the accent colour. Hyphens use a non-breaking hyphen (‑) so words like "Hand‑drawn" stay on one line.',
           multiline: true,
-          defaultValue: 'Merch that looks like the band sounds.',
+          defaultValue: 'Hand‑drawn. Hand‑pulled. A little saucy.',
         }),
         heroSubtext: fields.text({
           label: 'Hero subtext',
@@ -226,6 +227,13 @@ export default config({
         }),
         heroImage: fields.image({
           label: 'Hero image',
+          description: 'Wide shot — shown on tablet and desktop.',
+          directory: 'public/images/brand',
+          publicPath: '/images/brand/',
+        }),
+        heroImageMobile: fields.image({
+          label: 'Hero image — mobile',
+          description: 'Optional taller crop shown on phones. Falls back to the wide hero image if empty.',
           directory: 'public/images/brand',
           publicPath: '/images/brand/',
         }),

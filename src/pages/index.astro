@@ -12,27 +12,42 @@ const featuredList = [...featured, ...products.filter((p) => !featured.includes(
 
 // Bands we've actually printed merch for — their name links to the filtered shop.
 const bandSlugsWithMerch = new Set(products.filter((p) => p.band).map((p) => slugify(p.band!)));
+
+// Hero headline: knock the last word out in the accent colour.
+const heroWords = home.heroHeadline.trim().split(/\s+/);
+const heroLast = heroWords.length > 1 ? heroWords.pop()! : '';
+const heroLead = heroWords.join(' ');
 ---
 
 <Base description={home.heroSubtext}>
   <section class="hero">
-    <div class="wrap hero__inner">
-      <div class="hero__text">
-        <span class="eyebrow">Winona, MN · screen-print shop</span>
-        <h1>{home.heroHeadline}</h1>
-        <p class="hero__sub">{home.heroSubtext}</p>
-        <div class="hero__cta">
-          <a class="btn btn--primary" href={home.primaryCta.href}>{home.primaryCta.label}</a>
-          <a class="btn" href={home.secondaryCta.href}>{home.secondaryCta.label}</a>
-        </div>
+    {
+      home.heroImage && (
+        <picture class="hero__pic">
+          {home.heroImageMobile && (
+            <source media="(max-width: 640px)" srcset={home.heroImageMobile} width="900" height="1124" />
+          )}
+          <img
+            class="hero__img"
+            src={home.heroImage}
+            alt={home.heroImageAlt}
+            width="1672"
+            height="941"
+            fetchpriority="high"
+          />
+        </picture>
+      )
+    }
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="hero__inner">
+      <span class="eyebrow hero__eyebrow">Winona, MN · screen-print shop</span>
+      <h1 class="hero__title">
+        {heroLead} <span class="hero__accent">{heroLast}</span>
+      </h1>
+      <div class="hero__cta">
+        <a class="btn btn--primary" href={home.primaryCta.href}>{home.primaryCta.label}</a>
+        <a class="btn hero__btn" href={home.secondaryCta.href}>{home.secondaryCta.label}</a>
       </div>
-      {
-        home.heroImage && (
-          <div class="hero__img panel">
-            <img src={home.heroImage} alt={home.heroImageAlt} width="1500" height="844" fetchpriority="high" />
-          </div>
-        )
-      }
     </div>
   </section>
 
@@ -110,12 +125,63 @@ const bandSlugsWithMerch = new Set(products.filter((p) => p.band).map((p) => slu
 </Base>
 
 <style>
-  .hero { padding-block: clamp(1.75rem, 4vw, 3rem); }
-  .hero__inner { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(1.5rem, 5vw, 3.5rem); align-items: center; }
-  .hero__sub { font-size: 1.15rem; max-width: 44ch; margin-block: 1.2rem 1.6rem; }
-  .hero__cta { display: flex; flex-wrap: wrap; gap: 0.8rem; }
-  .hero__img { align-self: start; }
-  .hero__img img { width: 100%; height: auto; }
+  .hero { position: relative; border-bottom: 2.5px solid var(--ink); isolation: isolate; overflow: hidden; }
+  .hero__pic { display: contents; }
+  .hero__img {
+    width: 100%;
+    height: clamp(460px, 72vh, 660px);
+    object-fit: cover;
+    object-position: 50% 82%;
+  }
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(23, 21, 18, 0.22) 0%,
+      rgba(23, 21, 18, 0.04) 34%,
+      rgba(23, 21, 18, 0) 55%,
+      rgba(23, 21, 18, 0.4) 100%
+    );
+  }
+  .hero__inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: clamp(1.5rem, 4vw, 2.75rem);
+  }
+  .hero__eyebrow {
+    margin: 0 0 clamp(1rem, 3vw, 1.75rem);
+    background: var(--mustard);
+    color: var(--ink);
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+  .hero__title {
+    margin: 0;
+    width: min(100%, 60rem);
+    max-width: 100%;
+    font-size: clamp(1.9rem, 5.6vw, 5.5rem);
+    color: var(--paper);
+    -webkit-text-stroke: clamp(1.5px, 0.32vw, 3.5px) var(--ink);
+    paint-order: stroke fill;
+    text-shadow: 5px 5px 0 rgba(23, 21, 18, 0.4);
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .hero__accent { color: var(--saucy); }
+  .hero__cta {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+  }
+  .hero__btn { background: var(--paper); }
 
   .marquee {
     overflow: hidden;
@@ -163,9 +229,26 @@ const bandSlugsWithMerch = new Set(products.filter((p) => p.band).map((p) => slu
   .cta p { max-width: 40ch; margin-inline: auto; margin-bottom: 1.3rem; }
 
   @media (max-width: 900px) {
-    .hero__inner { grid-template-columns: 1fr; }
     .grid { grid-template-columns: repeat(2, 1fr); }
     .what { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero__img { height: clamp(480px, 82vh, 600px); object-position: 50% 62%; }
+    .hero__inner { padding: 1.4rem 1.15rem; }
+    .hero__eyebrow {
+      margin-bottom: 1.1rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      padding: 0.3rem 0.55rem;
+      transform: rotate(-1deg);
+    }
+    .hero__title {
+      font-size: clamp(1.7rem, 7vw, 2.8rem);
+      max-width: 15ch;
+      text-shadow: 4px 4px 0 rgba(23, 21, 18, 0.4);
+    }
+    .hero__cta { flex-direction: column; align-items: center; }
+    .hero__cta .btn { width: min(20rem, 100%); justify-content: center; }
   }
   @media (max-width: 480px) {
     .grid { grid-template-columns: 1fr; }
