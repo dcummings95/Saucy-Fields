@@ -156,6 +156,12 @@ export default config({
           multiline: true,
           defaultValue: 'Hand-drawn, screen-printed merch for local bands.',
         }),
+        seoTitle: fields.text({
+          label: 'Homepage SEO title',
+          description:
+            'The <title> tag for the homepage — shows as the headline in Google results. Aim for ~55 characters.',
+          defaultValue: 'Band Merch & Screen Printing in Winona, MN | Saucy Fields',
+        }),
         announcement: fields.object(
           {
             enabled: fields.checkbox({ label: 'Show announcement bar', defaultValue: true }),

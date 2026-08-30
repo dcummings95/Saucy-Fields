@@ -19,7 +19,9 @@ const settings = await getSiteSettings();
 // never disappears when someone re-saves an image field in the CMS.
 const { title, description, image = '/og-image.jpg' } = Astro.props;
 
-const pageTitle = title ? `${title} | ${settings.businessName}` : settings.businessName;
+const pageTitle = title
+  ? `${title} | ${settings.businessName}`
+  : (settings.seoTitle || settings.businessName);
 const pageDescription = description ?? settings.tagline;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).toString();
 const ogImage = new URL(image, Astro.site ?? Astro.url.origin).toString();
