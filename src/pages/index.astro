@@ -37,7 +37,11 @@ const featuredList = [...featured, ...products.filter((p) => !featured.includes(
       <div class="marquee__track">
         {
           Array.from({ length: 2 }).map(() => (
-            <span>Shirts&nbsp;✦&nbsp;Posters&nbsp;✦&nbsp;Album art&nbsp;✦&nbsp;Show flyers&nbsp;✦&nbsp;Merch tables&nbsp;✦&nbsp;</span>
+            <span class="marquee__group">
+              {Array.from({ length: 4 }).map(() => (
+                <span>Shirts&nbsp;✦&nbsp;Posters&nbsp;✦&nbsp;Album art&nbsp;✦&nbsp;Show flyers&nbsp;✦&nbsp;Merch tables&nbsp;✦&nbsp;</span>
+              ))}
+            </span>
           ))
         }
       </div>
@@ -110,11 +114,19 @@ const featuredList = [...featured, ...products.filter((p) => !featured.includes(
     background: var(--mustard);
   }
   .marquee__track {
-    display: inline-flex;
-    white-space: nowrap;
-    animation: marquee 26s linear infinite;
+    display: flex;
+    width: max-content;
+    animation: marquee 45s linear infinite;
   }
-  @keyframes marquee { to { transform: translateX(-50%); } }
+  .marquee__group {
+    display: flex;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
   @media (prefers-reduced-motion: reduce) {
     .marquee__track { animation: none; }
   }
