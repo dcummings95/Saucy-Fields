@@ -1,16 +1,17 @@
 {
-  // Cloudflare Workers config (with static assets). @astrojs/cloudflare v14
-  // targets Workers, not Pages. The dashboard/`wrangler secret` still owns the
-  // secrets; this file covers runtime compatibility and bindings.
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "saucy-fields",
-  "main": "@astrojs/cloudflare/entrypoints/server",
-  "compatibility_date": "2025-06-01",
-  "compatibility_flags": ["nodejs_compat"]
-
-  // Contact form email — uncomment once you own saucyfields.com and have run
-  // `npx wrangler email sending enable saucyfields.com` (+ added the DNS records
-  // and verified a destination address). Until then /api/contact shows its
-  // "email us directly" fallback. See HANDOFF.md §5.
-  // "send_email": [{ "name": "EMAIL" }]
+	// Cloudflare Workers config (with static assets). @astrojs/cloudflare v14
+	// targets Workers, not Pages. The dashboard/`wrangler secret` still owns the
+	// secrets; this file covers runtime compatibility and bindings.
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "saucy-fields",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"compatibility_date": "2025-06-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	]
+	// Contact form email — uncomment once you own saucyfields.com and have run
+	// `npx wrangler email sending enable saucyfields.com` (+ added the DNS records
+	// and verified a destination address). Until then /api/contact shows its
+	// "email us directly" fallback. See HANDOFF.md §5.
+	// "send_email": [{ "name": "EMAIL" }]
 }
