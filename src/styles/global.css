@@ -104,6 +104,11 @@ img { max-width: 100%; display: block; }
   color: var(--paper);
   padding: 0.3rem 0.6rem;
   transform: rotate(-1.5deg);
+  margin-bottom: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .eyebrow { margin-bottom: 1.25rem; }
 }
 
 /* --- buttons --- */
