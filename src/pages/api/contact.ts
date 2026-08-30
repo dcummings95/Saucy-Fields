@@ -101,5 +101,5 @@ export const POST: APIRoute = async ({ request }) => {
     return done(false, `Something went wrong sending that. Email us directly at ${SHOP_INBOX}.`, 502);
   }
 
-  return done(true, 'Thanks — we got your message and will get back to you soon.');
+  return done(true, 'Thanks! We got your message and will get back to you soon.');
 };
