@@ -3,11 +3,15 @@ import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { getHomepage, getProducts } from '../lib/keystatic';
+import { slugify } from '../lib/slug';
 
 const home = await getHomepage();
 const products = await getProducts();
 const featured = products.filter((p) => p.featured);
 const featuredList = [...featured, ...products.filter((p) => !featured.includes(p))].slice(0, 4);
+
+// Bands we've actually printed merch for — their name links to the filtered shop.
+const bandSlugsWithMerch = new Set(products.filter((p) => p.band).map((p) => slugify(p.band!)));
 ---
 
 <Base description={home.heroSubtext}>
@@ -77,15 +81,24 @@ const featuredList = [...featured, ...products.filter((p) => !featured.includes(
     <SectionHeading eyebrow="Good company" title={home.bandsHeading} />
     <ul class="bands">
       {
-        home.bands.map((b) =>
-          b.url ? (
-            <li>
-              <a href={b.url} target="_blank" rel="noopener">{b.name}</a>
-            </li>
-          ) : (
-            <li>{b.name}</li>
-          ),
-        )
+        home.bands.map((b) => {
+          const slug = slugify(b.name);
+          if (bandSlugsWithMerch.has(slug)) {
+            return (
+              <li>
+                <a href={`/shop?band=${slug}`}>{b.name}</a>
+              </li>
+            );
+          }
+          if (b.url) {
+            return (
+              <li>
+                <a href={b.url} target="_blank" rel="noopener">{b.name}</a>
+              </li>
+            );
+          }
+          return <li>{b.name}</li>;
+        })
       }
     </ul>
     <div class="cta panel">
@@ -141,8 +154,9 @@ const featuredList = [...featured, ...products.filter((p) => !featured.includes(
   .what__item p { margin: 0; }
 
   .bands { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.8rem; font-family: var(--font-display); font-weight: 700; }
-  .bands li { border: 2.5px solid var(--ink); border-radius: 999px; padding: 0.4rem 1rem; background: var(--paper); }
-  .bands a { text-decoration: none; color: var(--ink); }
+  .bands li { border: 2.5px solid var(--ink); border-radius: 999px; padding: 0.4rem 1rem; background: var(--paper); overflow: hidden; }
+  .bands a { text-decoration: none; color: var(--ink); display: block; margin: -0.4rem -1rem; padding: 0.4rem 1rem; }
+  .bands a:hover { background: var(--mustard); color: var(--ink); }
 
   .cta { margin-top: 2.5rem; padding: clamp(1.5rem, 5vw, 3rem); text-align: center; background: var(--saucy); color: var(--paper); }
   .cta h2 { margin-bottom: 0.5rem; }
