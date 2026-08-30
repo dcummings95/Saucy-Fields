@@ -1,0 +1,16 @@
+# Copy to `.dev.vars` for `npx wrangler pages dev dist` (the Cloudflare-runtime
+# preview). `astro dev` uses `.env` instead — keep both in sync locally.
+#
+# None are required: with them unset, checkout shows the "email us" fallback,
+# the contact form shows "email us directly", and /keystatic runs in whatever
+# mode keystatic.config.ts resolves.
+
+# Stripe — use a TEST key (sk_test_...) locally.
+STRIPE_SECRET_KEY=
+
+# Keystatic GitHub mode (production-style). Generated when you first connect the
+# GitHub App at /keystatic on a deployed URL. Not needed for local `astro dev`
+# (that runs Keystatic in local file mode).
+KEYSTATIC_GITHUB_CLIENT_ID=
+KEYSTATIC_GITHUB_CLIENT_SECRET=
+KEYSTATIC_SECRET=

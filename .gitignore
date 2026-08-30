@@ -2,6 +2,7 @@
 dist/
 .netlify/
 .vercel/
+.wrangler/
 
 # dependencies
 node_modules/
@@ -16,6 +17,8 @@ src/data/catalog.json
 .env
 .env.production
 .env*.local
+.dev.vars
+.dev.vars.local
 
 # os / editor
 .DS_Store

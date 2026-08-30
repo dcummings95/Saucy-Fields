@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import { getAbout, getSiteSettings } from '../lib/keystatic';
 import { renderMarkdoc } from '../lib/markdoc';
+import CmsImage from '../components/CmsImage.astro';
 
 const about = await getAbout();
 const settings = await getSiteSettings();
@@ -22,7 +23,13 @@ const storyHtml = renderMarkdoc(about.storyNode);
       {
         about.image && (
           <figure class="about__photo panel">
-            <img src={about.image} alt={about.imageAlt} width="1500" height="844" />
+            <CmsImage
+              src={about.image}
+              alt={about.imageAlt}
+              width={1500}
+              height={844}
+              sizes="(max-width: 900px) 92vw, 480px"
+            />
           </figure>
         )
       }
@@ -37,7 +44,16 @@ const storyHtml = renderMarkdoc(about.storyNode);
           <div class="founders">
             {about.founders.map((f) => (
               <div class="founder panel">
-                {f.photo && <img class="founder__img" src={f.photo} alt={f.name} width="200" height="200" />}
+                {f.photo && (
+                  <CmsImage
+                    class="founder__img"
+                    src={f.photo}
+                    alt={f.name}
+                    width={200}
+                    height={200}
+                    sizes="92px"
+                  />
+                )}
                 <div>
                   <h3>{f.name}</h3>
                   <p class="founder__role">{f.role}</p>
@@ -80,11 +96,12 @@ const storyHtml = renderMarkdoc(about.storyNode);
 <style>
   .about__top { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(1.5rem, 5vw, 3rem); align-items: start; }
   .about__photo { overflow: hidden; margin: 0; }
-  .about__photo img { width: 100%; height: auto; display: block; }
+  /* <img> comes from <CmsImage> (its own scope) — reach it with :global. */
+  .about__photo :global(img) { width: 100%; height: auto; display: block; }
 
   .founders { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
   .founder { display: flex; gap: 1rem; padding: 1.3rem; color: var(--ink); }
-  .founder__img { width: 92px; height: 92px; object-fit: cover; border: 2.5px solid var(--ink); border-radius: 4px; flex-shrink: 0; }
+  .founder :global(.founder__img) { width: 92px; height: 92px; object-fit: cover; border: 2.5px solid var(--ink); border-radius: 4px; flex-shrink: 0; }
   .founder__role { font-family: var(--font-display); font-weight: 700; color: var(--saucy-dark); margin: 0.1rem 0 0.5rem; }
   .founder h3 { margin: 0; }
   .founder p:last-child { margin-bottom: 0; }

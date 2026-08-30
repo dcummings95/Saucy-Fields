@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
   const items = Array.isArray(body.items) ? body.items : [];
   if (items.length === 0) return json({ message: 'Your cart is empty.' }, 400);
 
-  const origin = process.env.PUBLIC_SITE_URL || import.meta.env.PUBLIC_SITE_URL || new URL(request.url).origin;
+  const origin = import.meta.env.PUBLIC_SITE_URL || new URL(request.url).origin;
 
   const lineItems = [];
   for (const raw of items) {

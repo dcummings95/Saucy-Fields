@@ -1,0 +1,69 @@
+---
+import { webpSrcset } from '../lib/img';
+
+/**
+ * A plain `<img>` for a Keystatic-managed image (a `/images/...` string path),
+ * with a responsive WebP `<source>` in front of it. Astro's `<Image>` pipeline
+ * can't touch `public/` files, so the WebP variants are produced by the
+ * `saucy-images` post-build hook. `display: contents` on the wrapper keeps
+ * layout and existing `class` selectors behaving as a bare `<img>` would.
+ */
+interface Props {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  sizes?: string;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  class: className,
+  loading = 'lazy',
+  fetchpriority,
+  sizes = '(max-width: 700px) 90vw, 600px',
+} = Astro.props;
+
+const srcset = webpSrcset(src);
+---
+
+{
+  srcset ? (
+    <picture>
+      <source type="image/webp" srcset={srcset} sizes={sizes} />
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        class={className}
+        loading={loading}
+        fetchpriority={fetchpriority}
+        decoding="async"
+      />
+    </picture>
+  ) : (
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      class={className}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      decoding="async"
+    />
+  )
+}
+
+<style>
+  picture {
+    display: contents;
+  }
+</style>

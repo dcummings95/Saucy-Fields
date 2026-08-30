@@ -1,5 +1,6 @@
 ---
 import { usd } from '../lib/format';
+import CmsImage from './CmsImage.astro';
 import type { ProductEntry } from '../lib/keystatic';
 
 interface Props {
@@ -17,7 +18,15 @@ const tilt = [(index % 3) - 1] // -1, 0, 1 rotating
   <div class="card__frame">
     {
       image ? (
-        <img class="card__img" src={image.src} alt={image.alt} width="600" height="800" loading={index < 4 ? 'eager' : 'lazy'} />
+        <CmsImage
+          class="card__img"
+          src={image.src}
+          alt={image.alt}
+          width={600}
+          height={800}
+          sizes="(max-width: 480px) 90vw, (max-width: 900px) 45vw, 260px"
+          loading={index < 4 ? 'eager' : 'lazy'}
+        />
       ) : (
         <div class="card__img card__img--empty">No photo yet</div>
       )
@@ -58,7 +67,10 @@ const tilt = [(index % 3) - 1] // -1, 0, 1 rotating
     background: var(--paper-2);
     aspect-ratio: 3 / 4;
   }
-  .card__img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  /* The photo is rendered by <CmsImage>, so its <img> carries that component's
+     scope — reach it via :global within this card's frame. */
+  .card__img,
+  .card__frame :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
   .card__img--empty { display: grid; place-items: center; font-family: var(--font-display); opacity: 0.5; }
 
   .card__tags { position: absolute; top: 0.6rem; left: 0.6rem; display: flex; gap: 0.35rem; }

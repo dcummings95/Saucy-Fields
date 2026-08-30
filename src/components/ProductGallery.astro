@@ -1,17 +1,38 @@
 ---
+import { webpSrcset, webpVariant } from '../lib/img';
+
 interface Props {
   images: { src: string; alt: string }[];
   name: string;
 }
 const { images, name } = Astro.props;
 const gallery = images.length ? images : [{ src: '', alt: name }];
+const first = gallery[0];
+const firstSrcset = webpSrcset(first.src);
 ---
 
 <div class="gallery" data-gallery>
   <div class="gallery__main panel">
     {
-      gallery[0].src ? (
-        <img data-gallery-main src={gallery[0].src} alt={gallery[0].alt} width="1000" height="1250" />
+      first.src ? (
+        <picture>
+          {firstSrcset && (
+            <source
+              type="image/webp"
+              data-gallery-source
+              srcset={firstSrcset}
+              sizes="(max-width: 900px) 92vw, 520px"
+            />
+          )}
+          <img
+            data-gallery-main
+            src={first.src}
+            alt={first.alt}
+            width="1000"
+            height="1250"
+            decoding="async"
+          />
+        </picture>
       ) : (
         <div class="gallery__empty">No photo yet</div>
       )
@@ -26,10 +47,18 @@ const gallery = images.length ? images : [{ src: '', alt: name }];
               class:list={['gallery__thumb', { 'is-active': i === 0 }]}
               data-gallery-thumb
               data-src={img.src}
+              data-srcset={webpSrcset(img.src)}
               data-alt={img.alt}
               aria-label={`View image ${i + 1}`}
             >
-              <img src={img.src} alt="" width="120" height="150" loading="lazy" />
+              <img
+                src={webpVariant(img.src, 400) || img.src}
+                alt=""
+                width="120"
+                height="150"
+                loading="lazy"
+                decoding="async"
+              />
             </button>
           </li>
         ))}
@@ -40,6 +69,7 @@ const gallery = images.length ? images : [{ src: '', alt: name }];
 
 <style>
   .gallery__main { overflow: hidden; aspect-ratio: 4 / 5; background: var(--paper-2); }
+  .gallery__main picture { display: contents; }
   .gallery__main img { width: 100%; height: 100%; object-fit: cover; }
   .gallery__empty { display: grid; place-items: center; height: 100%; font-family: var(--font-display); opacity: 0.5; }
 
@@ -68,10 +98,12 @@ const gallery = images.length ? images : [{ src: '', alt: name }];
 <script>
   document.querySelectorAll('[data-gallery]').forEach((root) => {
     const main = root.querySelector('[data-gallery-main]');
+    const source = root.querySelector('[data-gallery-source]');
     const thumbs = root.querySelectorAll('[data-gallery-thumb]');
     thumbs.forEach((thumb) => {
       thumb.addEventListener('click', () => {
         if (!(main instanceof HTMLImageElement) || !(thumb instanceof HTMLElement)) return;
+        if (source instanceof HTMLSourceElement) source.srcset = thumb.dataset.srcset ?? '';
         main.src = thumb.dataset.src ?? main.src;
         main.alt = thumb.dataset.alt ?? main.alt;
         thumbs.forEach((t) => t.classList.remove('is-active'));

@@ -4,6 +4,7 @@ import SectionHeading from '../components/SectionHeading.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { getHomepage, getProducts } from '../lib/keystatic';
 import { slugify } from '../lib/slug';
+import { webpSrcset } from '../lib/img';
 
 const home = await getHomepage();
 const products = await getProducts();
@@ -17,6 +18,10 @@ const bandSlugsWithMerch = new Set(products.filter((p) => p.band).map((p) => slu
 const heroWords = home.heroHeadline.trim().split(/\s+/);
 const heroLast = heroWords.length > 1 ? heroWords.pop()! : '';
 const heroLead = heroWords.join(' ');
+
+// WebP variants only exist after `astro build` (see src/lib/img.ts).
+const heroWebp = webpSrcset(home.heroImage);
+const heroMobileWebp = home.heroImageMobile ? webpSrcset(home.heroImageMobile) : '';
 ---
 
 <Base description={home.heroSubtext}>
@@ -25,8 +30,20 @@ const heroLead = heroWords.join(' ');
       home.heroImage && (
         <picture class="hero__pic">
           {home.heroImageMobile && (
-            <source media="(max-width: 640px)" srcset={home.heroImageMobile} width="900" height="1124" />
+            <>
+              {heroMobileWebp && (
+                <source
+                  media="(max-width: 640px)"
+                  type="image/webp"
+                  srcset={heroMobileWebp}
+                  width="900"
+                  height="1124"
+                />
+              )}
+              <source media="(max-width: 640px)" srcset={home.heroImageMobile} width="900" height="1124" />
+            </>
           )}
+          {heroWebp && <source type="image/webp" srcset={heroWebp} sizes="100vw" />}
           <img
             class="hero__img"
             src={home.heroImage}
@@ -34,6 +51,7 @@ const heroLead = heroWords.join(' ');
             width="1672"
             height="941"
             fetchpriority="high"
+            decoding="async"
           />
         </picture>
       )

@@ -1,0 +1,10 @@
+# Astro's Cloudflare adapter appends an immutable rule for /_astro/* here.
+
+# CMS-managed images keep stable filenames (Keystatic overwrites in place), so
+# they can't be "immutable" — but they change rarely. A day fresh, a week of
+# stale-while-revalidate keeps repeat views and crawler hits off the origin.
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/og-image.jpg
+  Cache-Control: public, max-age=86400
