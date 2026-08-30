@@ -21,10 +21,33 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
       <Wordmark />
     </a>
 
-    <button class="site-header__menu" aria-expanded="false" aria-controls="site-nav">
-      <span class="visually-hidden">Menu</span>
-      <span class="site-header__burger" aria-hidden="true"></span>
-    </button>
+    <div class="site-header__tools">
+      <a
+        href="/cart"
+        class:list={['site-header__cart', { 'is-active': isActive('/cart') }]}
+        aria-label="Cart"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none" />
+          <circle cx="18" cy="20" r="1.4" fill="currentColor" stroke="none" />
+          <path d="M2 3h3l2.4 12.3a1 1 0 0 0 1 .7h9.5a1 1 0 0 0 1-.8L21 7H6" />
+        </svg>
+        <span class="site-header__cart-count" data-cart-count data-empty>0</span>
+      </a>
+
+      <button class="site-header__menu" aria-expanded="false" aria-controls="site-nav">
+        <span class="visually-hidden">Menu</span>
+        <span class="site-header__burger" aria-hidden="true"></span>
+      </button>
+    </div>
 
     <nav id="site-nav" class="site-nav" aria-label="Primary">
       {
@@ -105,6 +128,45 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
   }
   .site-nav__count[data-empty] { display: none; }
 
+  /* cart + hamburger cluster — only laid out on mobile */
+  .site-header__tools { display: contents; }
+
+  .site-header__cart {
+    display: none;
+    position: relative;
+    width: 2.6rem;
+    height: 2.6rem;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--saucy);
+    color: var(--paper);
+    border: 2.5px solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  .site-header__cart svg { width: 1.3rem; height: 1.3rem; }
+  .site-header__cart:active { transform: translate(1px, 1px); }
+  .site-header__cart.is-active { outline: 3px solid var(--mustard); outline-offset: 2px; }
+  .site-header__cart-count {
+    position: absolute;
+    top: -0.55rem;
+    right: -0.55rem;
+    background: var(--mustard);
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    min-width: 1.3rem;
+    height: 1.3rem;
+    display: grid;
+    place-items: center;
+    padding-inline: 0.25rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.72rem;
+  }
+  .site-header__cart-count[data-empty] { display: none; }
+
   .site-header__menu {
     display: none;
     background: var(--paper);
@@ -130,7 +192,10 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
   .site-header__burger::after { position: absolute; top: 6px; }
 
   @media (max-width: 800px) {
+    .site-header__tools { display: flex; align-items: center; gap: 0.55rem; }
+    .site-header__cart { display: inline-flex; }
     .site-header__menu { display: block; }
+    .site-nav__cart { display: none; }
     .site-nav {
       position: absolute;
       inset: 100% 0 auto 0;
@@ -145,7 +210,6 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
     .site-nav.is-open { display: flex; }
     .site-nav__link { padding-block: 0.7rem; border-bottom: 2px solid var(--paper-2); }
     .site-nav__link.is-active { border-bottom-color: var(--saucy); }
-    .site-nav__cart { margin-top: 0.7rem; justify-content: center; }
   }
 </style>
 
