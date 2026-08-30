@@ -1,0 +1,206 @@
+---
+import Base from '../layouts/Base.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import { getSiteSettings } from '../lib/keystatic';
+
+const settings = await getSiteSettings();
+---
+
+<Base title="Cart" description="Your Saucy Fields cart.">
+  <section class="section wrap">
+    <SectionHeading eyebrow="Your cart" title="What's in the bag" as="h1" />
+
+    <div class="cart" data-cart>
+      <div class="cart__lines" data-cart-body>
+        <!-- filled by script -->
+      </div>
+
+      <aside class="cart__summary" data-cart-summary hidden>
+        <div class="cart__row">
+          <span>Subtotal</span>
+          <span data-cart-subtotal>$0.00</span>
+        </div>
+        <p class="cart__note">Shipping calculated at checkout. {settings.shippingNote}</p>
+        <button class="btn btn--primary btn--block" data-checkout>Checkout</button>
+        <p class="cart__fallback" data-cart-fallback hidden></p>
+        <div class="cart__aux">
+          <a href="/shop">Keep shopping</a>
+          <button type="button" data-clear-cart>Empty cart</button>
+        </div>
+      </aside>
+    </div>
+
+    <script is:inline define:vars={{ email: settings.email }}>
+      window.__SAUCY_EMAIL__ = email;
+    </script>
+  </section>
+</Base>
+
+<style>
+  .cart { display: grid; grid-template-columns: 1fr; gap: clamp(1.5rem, 4vw, 2.5rem); }
+  @media (min-width: 820px) {
+    .cart { grid-template-columns: 1.6fr 1fr; align-items: start; }
+  }
+
+  .cart__empty { text-align: center; padding: clamp(2rem, 8vw, 4rem) 1rem; border: 2.5px dashed var(--ink); border-radius: var(--radius); }
+  .cart__empty p { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; margin: 0 0 1.3rem; }
+
+  .cart-line {
+    display: grid;
+    grid-template-columns: 84px 1fr auto;
+    gap: 1rem;
+    padding-block: 1.1rem;
+    border-bottom: 2.5px solid var(--paper-2);
+  }
+  .cart-line:first-child { padding-top: 0; }
+  .cart-line__img { width: 84px; height: 84px; object-fit: cover; border: 2.5px solid var(--ink); border-radius: 4px; background: var(--paper-2); }
+  .cart-line__name { font-family: var(--font-display); font-weight: 700; line-height: 1.15; }
+  .cart-line__name a { color: var(--ink); text-decoration: none; }
+  .cart-line__name a:hover { color: var(--saucy-dark); }
+  .cart-line__opts { font-size: 0.9rem; opacity: 0.75; margin-top: 0.2rem; }
+  .cart-line__qty { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.6rem; }
+  .cart-line__qty button {
+    width: 1.8rem; height: 1.8rem;
+    border: 2.5px solid var(--ink); background: var(--paper);
+    border-radius: 4px; cursor: pointer; font-weight: 700; line-height: 1;
+  }
+  .cart-line__qty span { min-width: 1.5rem; text-align: center; font-weight: 700; }
+  .cart-line__price { font-family: var(--font-display); font-weight: 700; text-align: right; }
+  .cart-line__remove { display: block; margin-top: 0.5rem; font-size: 0.8rem; background: none; border: 0; text-decoration: underline; cursor: pointer; color: var(--saucy-dark); }
+
+  .cart__summary {
+    border: 2.5px solid var(--ink);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    background: var(--paper);
+    padding: 1.3rem;
+  }
+  .cart__summary[hidden] { display: none; }
+  @media (min-width: 820px) { .cart__summary { position: sticky; top: 5rem; } }
+  .cart__row { display: flex; justify-content: space-between; font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; }
+  .cart__note { font-size: 0.85rem; opacity: 0.75; margin: 0.6rem 0 1rem; }
+  .cart__fallback { font-size: 0.9rem; margin: 0 0 0.9rem; padding: 0.7rem; border: 2px dashed var(--ink); border-radius: 4px; background: var(--mustard); }
+  .cart__fallback[hidden] { display: none; }
+  .cart__aux { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; }
+  .cart__aux a { color: var(--saucy-dark); }
+  .cart__aux button { background: none; border: 0; text-decoration: underline; cursor: pointer; font: inherit; }
+</style>
+
+<script>
+  import {
+    getCart, onCartChange, setQty, removeLine, clearCart, cartSubtotal, lineKey,
+  } from '../lib/cart';
+  import { usd } from '../lib/format';
+
+  const email = (window as any).__SAUCY_EMAIL__ || '';
+
+  const body = document.querySelector<HTMLElement>('[data-cart-body]');
+  const summary = document.querySelector<HTMLElement>('[data-cart-summary]');
+  const subtotalEl = document.querySelector<HTMLElement>('[data-cart-subtotal]');
+  const fallbackEl = document.querySelector<HTMLElement>('[data-cart-fallback]');
+  const checkoutBtn = document.querySelector<HTMLButtonElement>('[data-checkout]');
+
+  function escapeHtml(s: string) {
+    return s.replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>
+    )[c]);
+  }
+
+  function render() {
+    const lines = getCart();
+    if (!body) return;
+
+    if (lines.length === 0) {
+      body.innerHTML = `
+        <div class="cart__empty">
+          <p>Nothing in your cart yet.</p>
+          <a class="btn btn--primary" href="/shop">Browse the shop</a>
+        </div>`;
+      summary?.setAttribute('hidden', '');
+      return;
+    }
+
+    summary?.removeAttribute('hidden');
+    body.innerHTML = lines
+      .map((l) => {
+        const key = lineKey(l);
+        const opts = [l.size, l.color].filter(Boolean).join(' · ');
+        return `
+          <div class="cart-line">
+            <a href="/shop/${l.slug}"><img class="cart-line__img" src="${l.image}" alt="" width="84" height="84" loading="lazy" /></a>
+            <div>
+              <div class="cart-line__name"><a href="/shop/${l.slug}">${escapeHtml(l.name)}</a></div>
+              ${opts ? `<div class="cart-line__opts">${escapeHtml(opts)}</div>` : ''}
+              <div class="cart-line__qty">
+                <button data-dec="${key}" aria-label="Decrease quantity">–</button>
+                <span>${l.qty}</span>
+                <button data-inc="${key}" aria-label="Increase quantity">+</button>
+              </div>
+            </div>
+            <div>
+              <div class="cart-line__price">${usd(l.price * l.qty)}</div>
+              <button class="cart-line__remove" data-remove="${key}">Remove</button>
+            </div>
+          </div>`;
+      })
+      .join('');
+
+    if (subtotalEl) subtotalEl.textContent = usd(cartSubtotal());
+  }
+
+  function mailtoFallback() {
+    const lines = getCart();
+    const list = lines
+      .map((l) => `- ${l.name}${[l.size, l.color].filter(Boolean).length ? ` (${[l.size, l.color].filter(Boolean).join(', ')})` : ''} ×${l.qty}`)
+      .join('%0D%0A');
+    const mailBody = `Hi Saucy Fields,%0D%0A%0D%0AI'd like to order:%0D%0A${list}%0D%0A%0D%0AName:%0D%0AShipping address / pickup:`;
+    return `mailto:${email}?subject=${encodeURIComponent('Merch order')}&body=${mailBody}`;
+  }
+
+  function showFallback(message?: string) {
+    if (!fallbackEl) return;
+    fallbackEl.innerHTML = `${escapeHtml(message || 'Online checkout isn’t switched on yet.')} <a href="${mailtoFallback()}">Email your order instead →</a>`;
+    fallbackEl.removeAttribute('hidden');
+  }
+
+  async function checkout() {
+    if (!checkoutBtn) return;
+    checkoutBtn.setAttribute('disabled', '');
+    checkoutBtn.textContent = 'Taking you to checkout…';
+    fallbackEl?.setAttribute('hidden', '');
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          items: getCart().map((l) => ({ slug: l.slug, size: l.size, color: l.color, qty: l.qty })),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) { window.location.href = data.url; return; }
+        throw new Error('No checkout URL');
+      }
+      const data = await res.json().catch(() => ({}));
+      showFallback(data.message);
+    } catch {
+      showFallback();
+    } finally {
+      checkoutBtn.removeAttribute('disabled');
+      checkoutBtn.textContent = 'Checkout';
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) return;
+    if (t.dataset.inc) { const l = getCart().find((x) => lineKey(x) === t.dataset.inc); if (l) setQty(t.dataset.inc, l.qty + 1); }
+    if (t.dataset.dec) { const l = getCart().find((x) => lineKey(x) === t.dataset.dec); if (l) setQty(t.dataset.dec, l.qty - 1); }
+    if (t.dataset.remove) removeLine(t.dataset.remove);
+    if (t.closest('[data-clear-cart]')) clearCart();
+    if (t.closest('[data-checkout]')) checkout();
+  });
+
+  onCartChange(render);
+  render();
+</script>

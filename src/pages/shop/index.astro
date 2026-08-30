@@ -12,6 +12,9 @@ const typeLabels: Record<string, string> = { shirt: 'Shirts', poster: 'Posters',
 const bands = [...new Set(products.map((p) => p.band).filter(Boolean))].sort((a, b) =>
   a!.localeCompare(b!),
 ) as string[];
+// Anything without a band is a Saucy Fields original.
+const hasOriginals = products.some((p) => !p.band);
+const ORIGINALS = 'saucy-fields-originals';
 ---
 
 <Base title="Shop" description="Screen-printed shirts and posters from Saucy Fields and the bands we print for.">
@@ -33,11 +36,12 @@ const bands = [...new Set(products.map((p) => p.band).filter(Boolean))].sort((a,
         </div>
 
         {
-          bands.length > 0 && (
+          (bands.length > 0 || hasOriginals) && (
             <label class="filters__band">
-              <span class="visually-hidden">Filter by band</span>
+              <span class="visually-hidden">Filter by band or collection</span>
               <select data-filter-band>
-                <option value="all">All bands ({bands.length})</option>
+                <option value="all">All designs</option>
+                {hasOriginals && <option value={ORIGINALS}>Saucy Fields originals</option>}
                 {bands.map((b) => (
                   <option value={slugify(b)}>{b}</option>
                 ))}
@@ -56,8 +60,8 @@ const bands = [...new Set(products.map((p) => p.band).filter(Boolean))].sort((a,
           <div
             class="grid__item"
             data-type={p.type}
-            data-band={p.band ? slugify(p.band) : ''}
-            data-search={`${p.name} ${p.band ?? ''}`.toLowerCase()}
+            data-band={p.band ? slugify(p.band) : ORIGINALS}
+            data-search={`${p.name} ${p.band || 'Saucy Fields original'}`.toLowerCase()}
           >
             <ProductCard product={p} index={i} />
           </div>

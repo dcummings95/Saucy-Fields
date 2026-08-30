@@ -48,7 +48,7 @@ const payload = {
   <button type="submit" class="btn btn--primary btn--block atc__submit" disabled={soldOut}>
     {soldOut ? 'Sold out' : `Add to cart · ${usd(product.price)}`}
   </button>
-  <p class="atc__msg" data-atc-msg hidden>Added to cart ✓</p>
+  <p class="atc__msg" data-atc-msg hidden>Added ✓ <a href="/cart">View cart →</a></p>
 </form>
 
 <style>
@@ -66,6 +66,7 @@ const payload = {
   .atc__field--qty input { width: 5rem; }
   .atc__submit { margin-top: 0.3rem; font-size: 1.05rem; }
   .atc__msg { font-family: var(--font-display); font-weight: 700; color: var(--saucy-dark); margin: 0; }
+  .atc__msg a { color: var(--saucy-dark); text-underline-offset: 3px; }
   .atc__msg[hidden] { display: none; }
 </style>
 
@@ -87,8 +88,7 @@ const payload = {
       addToCart({ slug: product.slug, name: product.name, price: product.price, image: product.image, size, color }, qty);
 
       msg?.removeAttribute('hidden');
-      window.dispatchEvent(new CustomEvent('saucy:open-cart'));
-      setTimeout(() => msg?.setAttribute('hidden', ''), 2500);
+      setTimeout(() => msg?.setAttribute('hidden', ''), 6000);
     });
   });
 </script>

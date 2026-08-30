@@ -34,9 +34,9 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
           </a>
         ))
       }
-      <button type="button" class="site-nav__cart" data-open-cart>
-        Cart <span class="site-nav__count" data-cart-count>0</span>
-      </button>
+      <a href="/cart" class:list={['site-nav__cart', { 'is-active': isActive('/cart') }]}>
+        Cart <span class="site-nav__count" data-cart-count data-empty>0</span>
+      </a>
     </nav>
   </div>
 </header>
@@ -89,7 +89,9 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
     padding: 0.4rem 0.8rem;
     cursor: pointer;
   }
+  .site-nav__cart { text-decoration: none; }
   .site-nav__cart:hover { transform: translate(-1px, -1px); }
+  .site-nav__cart.is-active { outline: 3px solid var(--mustard); outline-offset: 2px; }
   .site-nav__count {
     background: var(--paper);
     color: var(--ink);
@@ -101,6 +103,7 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
     font-size: 0.8rem;
     padding-inline: 0.3rem;
   }
+  .site-nav__count[data-empty] { display: none; }
 
   .site-header__menu {
     display: none;
@@ -152,5 +155,18 @@ const isActive = (href: string) => path === href || (href !== '/' && path.starts
   btn?.addEventListener('click', () => {
     const open = nav?.classList.toggle('is-open') ?? false;
     btn.setAttribute('aria-expanded', String(open));
+  });
+
+  // Keep the header cart badge in sync on every page.
+  import('../lib/cart').then(({ cartCount, onCartChange }) => {
+    const paint = () => {
+      const n = cartCount();
+      document.querySelectorAll<HTMLElement>('[data-cart-count]').forEach((el) => {
+        el.textContent = String(n);
+        el.toggleAttribute('data-empty', n === 0);
+      });
+    };
+    onCartChange(paint);
+    paint();
   });
 </script>
