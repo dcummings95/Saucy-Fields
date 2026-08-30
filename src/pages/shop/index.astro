@@ -41,7 +41,7 @@ const ORIGINALS = 'saucy-fields-originals';
               <span class="visually-hidden">Filter by band or collection</span>
               <select data-filter-band>
                 <option value="all">All designs</option>
-                {hasOriginals && <option value={ORIGINALS}>Saucy Fields originals</option>}
+                {hasOriginals && <option value={ORIGINALS}>Saucy Fields</option>}
                 {bands.map((b) => (
                   <option value={slugify(b)}>{b}</option>
                 ))}
@@ -61,7 +61,7 @@ const ORIGINALS = 'saucy-fields-originals';
             class="grid__item"
             data-type={p.type}
             data-band={p.band ? slugify(p.band) : ORIGINALS}
-            data-search={`${p.name} ${p.band || 'Saucy Fields original'}`.toLowerCase()}
+            data-search={`${p.name} ${p.maker}`.toLowerCase()}
           >
             <ProductCard product={p} index={i} />
           </div>

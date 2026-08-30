@@ -29,7 +29,7 @@ const tilt = [(index % 3) - 1] // -1, 0, 1 rotating
     </div>
   </div>
   <div class="card__meta">
-    <span class="card__band">{product.band || ' '}</span>
+    <span class="card__band">{product.maker}</span>
     <h3 class="card__name">{product.name}</h3>
     <p class="card__price">
       {onSale && <span class="card__was">{usd(product.compareAtPrice!)}</span>}

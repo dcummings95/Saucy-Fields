@@ -30,6 +30,8 @@ export async function getProducts() {
       return {
         slug: entry.slug,
         ...entry.entry,
+        // Who the design is for. Originals (no band) are credited to the shop.
+        maker: entry.entry.band || 'Saucy Fields',
         statusLabel: STATUS_LABELS[entry.entry.status] ?? entry.entry.status,
         typeLabel: TYPE_LABELS[entry.entry.type] ?? entry.entry.type,
         images: entry.entry.images.map((image) => ({
@@ -56,6 +58,7 @@ export async function getProduct(slug: string) {
   return {
     slug,
     ...entry,
+    maker: entry.band || 'Saucy Fields',
     statusLabel: STATUS_LABELS[entry.status] ?? entry.status,
     typeLabel: TYPE_LABELS[entry.type] ?? entry.type,
     images: entry.images.map((image) => ({

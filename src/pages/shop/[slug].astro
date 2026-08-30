@@ -30,7 +30,7 @@ const seo = product.seoDescription || product.shortDescription || `${product.nam
     <ProductGallery images={product.images} name={product.name} />
 
     <div class="product__info">
-      {product.band && <span class="product__band">{product.band}</span>}
+      <span class="product__band">{product.maker}</span>
       <h1>{product.name}</h1>
 
       <p class="product__price">
