@@ -55,8 +55,8 @@ export default config({
           },
         }),
         band: fields.text({
-          label: 'Band / artist',
-          description: 'Whose merch is this? Leave blank for Saucy Fields originals.',
+          label: 'Band / business / artist',
+          description: 'Who is this for? Shows on the product card and drives the shop filter. Leave blank for Saucy Fields originals.',
         }),
         type: fields.select({
           label: 'Type',
@@ -154,13 +154,13 @@ export default config({
         tagline: fields.text({
           label: 'Tagline',
           multiline: true,
-          defaultValue: 'Hand-drawn, screen-printed merch for local bands.',
+          defaultValue: 'Hand-drawn, screen-printed shirts and posters out of Winona, MN.',
         }),
         seoTitle: fields.text({
           label: 'Homepage SEO title',
           description:
             'The <title> tag for the homepage — shows as the headline in Google results. Aim for ~55 characters.',
-          defaultValue: 'Band Merch & Screen Printing in Winona, MN | Saucy Fields',
+          defaultValue: 'Screen Printing & Custom Merch in Winona, MN | Saucy Fields',
         }),
         announcement: fields.object(
           {
@@ -223,7 +223,7 @@ export default config({
           label: 'Hero subtext',
           multiline: true,
           defaultValue:
-            'Saucy Fields is a two-person print shop in Winona, MN. We draw, design, and screen-print shirts and posters for local bands — and sell a few of our own.',
+            'Saucy Fields is a two-person print shop in Winona, MN. We draw, design, and screen-print shirts and posters for bands, businesses, and anyone who wants something better than clip art — and sell a few of our own.',
         }),
         heroImage: fields.image({
           label: 'Hero image',
@@ -260,13 +260,13 @@ export default config({
           }),
           { label: '"What we do" items', itemLabel: (props) => props.fields.title.value || 'Item' },
         ),
-        bandsHeading: fields.text({ label: 'Band roster heading', defaultValue: 'Bands we’ve printed for' }),
+        bandsHeading: fields.text({ label: 'Client roster heading', defaultValue: 'Recently printed for' }),
         bands: fields.array(
           fields.object({
-            name: fields.text({ label: 'Band name' }),
+            name: fields.text({ label: 'Name' }),
             url: fields.text({ label: 'Link (optional)' }),
           }),
-          { label: 'Bands', itemLabel: (props) => props.fields.name.value || 'Band' },
+          { label: 'Roster', itemLabel: (props) => props.fields.name.value || 'Name' },
         ),
       },
     }),
@@ -325,7 +325,7 @@ export default config({
           label: 'Intro',
           multiline: true,
           defaultValue:
-            'In a band and need merch that does the music justice? We handle the whole thing — art, print, and delivery.',
+            "Need shirts, posters, or a full merch run? We handle the whole thing — art, print, and delivery — whether it's for a band, a business, or a one-time event.",
         }),
         offeringsHeading: fields.text({ label: 'Offerings heading', defaultValue: 'What we offer' }),
         offerings: fields.array(
@@ -347,7 +347,7 @@ export default config({
         ctaBody: fields.text({
           label: 'CTA body',
           multiline: true,
-          defaultValue: 'Send us a note with your band, your timeline, and any art you already have.',
+          defaultValue: 'Send us a note with your project, your timeline, and any art you already have.',
         }),
         body: fields.markdoc({ label: 'Extra content (optional)' }),
       },

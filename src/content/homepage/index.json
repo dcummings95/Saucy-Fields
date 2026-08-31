@@ -1,6 +1,6 @@
 {
   "heroHeadline": "Hand‑drawn. Hand‑pulled. A little saucy.",
-  "heroSubtext": "Saucy Fields is a two-person print shop in Winona, MN. We draw, design, and screen-print shirts and posters for local bands — and sell a few of our own along the way.",
+  "heroSubtext": "Saucy Fields is a two-person print shop in Winona, MN. We draw, design, and screen-print shirts and posters for bands, businesses, and anyone who wants something better than clip art — and sell a few of our own along the way.",
   "heroImage": "/images/brand/saucy-hero.jpg",
   "heroImageMobile": "/images/brand/saucy-hero-mobile.jpg",
   "heroImageAlt": "Isaac and Spencer of Saucy Fields against a mustard-yellow backdrop",
@@ -16,7 +16,7 @@
   "whatWeDo": [
     {
       "title": "Draw it",
-      "body": "Hand-drawn artwork made for your record, your show, or your whole vibe. No clip art, no templates."
+      "body": "Hand-drawn artwork made for your band, your business, or your one-off idea. No clip art, no templates."
     },
     {
       "title": "Print it",
@@ -24,10 +24,10 @@
     },
     {
       "title": "Move it",
-      "body": "We can run your merch table stock, sell it here on the site, or hand it off at the show. Whatever’s easiest."
+      "body": "We can hold your stock, sell it here on the site, ship it out, or hand it off in person. Whatever’s easiest."
     }
   ],
-  "bandsHeading": "Bands we’ve printed for",
+  "bandsHeading": "Recently printed for",
   "bands": [
     {
       "name": "Winona Is Dead"

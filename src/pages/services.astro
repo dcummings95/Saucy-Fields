@@ -7,12 +7,12 @@ import { renderMarkdoc } from '../lib/markdoc';
 const services = await getServices();
 const settings = await getSiteSettings();
 const bodyHtml = renderMarkdoc(services.bodyNode);
-const mailto = `mailto:${settings.email}?subject=${encodeURIComponent('Merch for my band')}`;
+const mailto = `mailto:${settings.email}?subject=${encodeURIComponent('Custom print project')}`;
 ---
 
 <Base title="Make merch with us" description={services.intro}>
   <section class="section wrap">
-    <SectionHeading eyebrow="For bands" title={services.heading} as="h1">
+    <SectionHeading eyebrow="Custom work" title={services.heading} as="h1">
       <p>{services.intro}</p>
     </SectionHeading>
     <a class="btn btn--primary" href={mailto}>Start a project →</a>
