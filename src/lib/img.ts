@@ -3,7 +3,7 @@
  *
  * Astro's `<Image>` pipeline never touches `public/`, so the `saucy-images`
  * build hook in astro.config.mjs post-processes `dist/images/**` instead:
- * it caps the original raster at 1600px and emits WebP variants at each of
+ * it caps the original raster at 2600px and emits WebP variants at each of
  * IMG_WIDTHS. These helpers build the URLs that point at those variants.
  *
  * The build hook only runs on `astro build`. During `astro dev` the variants
@@ -11,7 +11,7 @@
  * raster (served as-is by the dev server, same as before).
  */
 
-export const IMG_WIDTHS = [400, 800, 1600] as const;
+export const IMG_WIDTHS = [400, 800, 1600, 2600] as const;
 
 const VARIANTS_BUILT = !import.meta.env.DEV;
 const isRaster = (src: string) => /\.(jpe?g|png)$/i.test(src);

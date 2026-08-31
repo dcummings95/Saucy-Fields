@@ -59,13 +59,13 @@ function saucyCatalog() {
 }
 
 // Keep in sync with IMG_WIDTHS in src/lib/img.ts.
-const IMG_WIDTHS = [400, 800, 1600];
+const IMG_WIDTHS = [400, 800, 1600, 2600];
 
 /**
  * Post-build image squeeze. Keystatic writes uploads straight into
  * `public/images/**` as full-size JPG/PNG, and Astro's `<Image>` pipeline never
  * touches `public/`. So after the build we walk the emitted `dist/images/**`:
- * cap the original raster at 1600px and re-encode it (this stays the `<img>`
+ * cap the original raster at 2600px and re-encode it (this stays the `<img>`
  * fallback), then emit `name-<width>.webp` variants that `CmsImage.astro` and
  * the product gallery point a `<source srcset>` at. Only `dist/` is touched —
  * the source files the CMS manages are left alone.
@@ -85,7 +85,7 @@ async function optimizeBuiltImages(distDir, logger) {
     const from = () => sharp(input, { failOn: 'none' }).rotate();
 
     // Re-encode the original in place, capped at the largest width.
-    let raster = from().resize(1600, 1600, { fit: 'inside', withoutEnlargement: true });
+    let raster = from().resize(2600, 2600, { fit: 'inside', withoutEnlargement: true });
     raster = isPng
       ? raster.png({ compressionLevel: 9, palette: true })
       : raster.jpeg({ quality: 80, mozjpeg: true });
