@@ -1,0 +1,160 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import CmsImage from './CmsImage.astro';
+
+/**
+ * A row of Instagram posts or reels, managed in the CMS as a link + title +
+ * cover image (see `instagramList` in keystatic.config.ts).
+ *
+ * Each card is the cover image, linking out to the post on Instagram. We don't
+ * use Instagram's embed: the account has embedding switched off (the embed
+ * endpoint returns an error page), and the embed is a heavy white box anyway.
+ * A self-hosted cover is fast, matches the site, and can't break.
+ */
+interface Props {
+  posts: readonly { url: string | null; title: string; cover: string | null }[];
+  eyebrow?: string | null;
+  heading?: string | null;
+  profileUrl?: string | null;
+  /** Card shape: tall (9:16) for reels, 4:5 for photo posts. */
+  shape?: 'tall' | 'photo';
+  /** Label on the card's corner tag. */
+  badge?: string;
+}
+const { posts, eyebrow, heading, profileUrl, shape = 'tall', badge = 'Watch on Instagram' } = Astro.props;
+const [w, h] = shape === 'tall' ? [360, 640] : [640, 800];
+
+/** Normalise any post / reel link to its canonical permalink, or null if it isn't one. */
+function permalink(url: string | null): string | null {
+  const m = url?.match(/instagram\.com\/(?:[^/?#]+\/)?(?:p|reels?|tv)\/([A-Za-z0-9_-]+)/i);
+  return m ? `https://www.instagram.com/p/${m[1]}/` : null;
+}
+
+const items = posts
+  .map((v) => ({ title: v.title.trim(), cover: v.cover, href: permalink(v.url) }))
+  .filter((v): v is { title: string; cover: string | null; href: string } => !!v.href);
+---
+
+{
+  items.length > 0 && (
+    <section class="section wrap">
+      <SectionHeading eyebrow={eyebrow || undefined} title={heading || 'From our Instagram'} />
+
+      <ul class="ig" style={`--ratio:${w} / ${h}`}>
+        {items.map((v, i) => (
+          <li style={`--tilt:${((i % 3) - 1) * 0.8}deg`}>
+            <a class="ig__card" href={v.href} target="_blank" rel="noopener">
+              <div class="ig__frame">
+                {v.cover ? (
+                  <CmsImage
+                    src={v.cover}
+                    alt=""
+                    width={w}
+                    height={h}
+                    sizes="(max-width: 900px) 45vw, 260px"
+                  />
+                ) : (
+                  <div class="ig__empty">
+                    <span class="ig__play" aria-hidden="true">▶</span>
+                  </div>
+                )}
+                <span class="ig__badge">{badge} ↗</span>
+              </div>
+              {v.title && <span class="ig__title">{v.title}</span>}
+              <span class="visually-hidden"> (opens Instagram in a new tab)</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      {profileUrl && (
+        <p class="ig__more">
+          <a class="btn" href={profileUrl} target="_blank" rel="me noopener">
+            More on our Instagram →
+          </a>
+        </p>
+      )}
+    </section>
+  )
+}
+
+<style>
+  .ig {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(1rem, 3vw, 1.8rem);
+    align-items: start;
+  }
+  .ig__card {
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+    transform: rotate(var(--tilt));
+    transition: transform 0.12s ease;
+  }
+  .ig__card:hover { transform: rotate(0deg) translateY(-3px); }
+  .ig__card:hover .ig__frame { box-shadow: 7px 7px 0 var(--ink); }
+
+  .ig__frame {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    background: var(--ink);
+  }
+  /* <img> comes from <CmsImage> (its own scope) — reach it with :global. */
+  .ig__frame :global(img) { width: 100%; height: 100%; object-fit: cover; }
+
+  .ig__empty { display: grid; place-items: center; height: 100%; background: var(--paper-2); }
+  .ig__play {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding-left: 0.2rem;
+    border: var(--border);
+    border-radius: 999px;
+    background: var(--saucy);
+    color: var(--paper);
+    font-size: 1.3rem;
+  }
+
+  .ig__badge {
+    position: absolute;
+    left: 0.6rem;
+    top: 0.6rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.5rem;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+  }
+  .ig__card:hover .ig__badge { background: var(--mustard); }
+
+  .ig__title {
+    display: block;
+    margin-top: 0.8rem;
+    padding-inline: 0.2rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .ig__card:hover .ig__title { color: var(--saucy-dark); }
+  .ig__more { margin: 2rem 0 0; }
+
+  @media (max-width: 900px) {
+    .ig { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .ig__badge { font-size: 0.62rem; left: 0.4rem; top: 0.4rem; }
+  }
+</style>

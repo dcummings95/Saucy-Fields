@@ -172,6 +172,34 @@ const heroPicker = <T extends Record<string, ComponentSchema>>(folder: string, t
 const eyebrowField = (defaultValue: string) =>
   fields.text({ label: 'Small label above the heading', description: 'Optional.', defaultValue });
 
+/**
+ * A hand-picked list of Instagram posts: link + title + a cover image we host
+ * ourselves. The account has embedding switched off, so the site shows the
+ * cover and links out (see src/components/InstagramPosts.astro).
+ */
+const instagramList = (o: { label: string; where: string; coverHint: string; folder: string }) =>
+  fields.array(
+    fields.object({
+      url: fields.url({
+        label: 'Instagram link',
+        description: 'Paste the link to a public post or reel, e.g. https://www.instagram.com/p/ABC123/',
+        validation: { isRequired: true },
+      }),
+      title: fields.text({ label: 'Title', description: 'Shown under the picture.' }),
+      cover: fields.image({
+        label: 'Cover image',
+        description: `${o.coverHint} Clicking it opens the post on Instagram.`,
+        directory: `public/images/${o.folder}`,
+        publicPath: `/images/${o.folder}/`,
+      }),
+    }),
+    {
+      label: o.label,
+      description: `Shown ${o.where}. Drag to reorder; the first one shows first.`,
+      itemLabel: (props) => props.fields.title.value || props.fields.url.value || 'Post',
+    },
+  );
+
 export default config({
   storage,
   ui: {
@@ -608,6 +636,14 @@ export default config({
           }),
           { label: 'Founders', itemLabel: (props) => props.fields.name.value || 'Person' },
         ),
+        postsEyebrow: eyebrowField('From our Instagram'),
+        postsHeading: fields.text({ label: 'Instagram heading', defaultValue: 'Off the press' }),
+        posts: instagramList({
+          label: 'Instagram posts',
+          where: 'under "Isaac & Spencer"',
+          coverHint: 'A square or portrait photo from the post.',
+          folder: 'instagram',
+        }),
         processHeading: fields.text({ label: 'Process heading', defaultValue: 'How a print happens' }),
         process: fields.array(
           fields.object({
@@ -650,6 +686,14 @@ export default config({
           }),
           { label: 'Steps', itemLabel: (props) => props.fields.title.value || 'Step' },
         ),
+        videosEyebrow: eyebrowField('On the press'),
+        videosHeading: fields.text({ label: 'Videos heading', defaultValue: 'Watch us make it' }),
+        videos: instagramList({
+          label: 'Instagram videos',
+          where: 'between "What we offer" and "How it works"',
+          coverHint: 'A tall (9:16) still from the video — a screenshot of the reel works.',
+          folder: 'videos',
+        }),
         ctaHeading: fields.text({ label: 'CTA heading', defaultValue: 'Let’s talk' }),
         ctaBody: fields.text({
           label: 'CTA body',

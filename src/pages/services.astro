@@ -2,14 +2,15 @@
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import PageHero from '../components/PageHero.astro';
+import InstagramPosts from '../components/InstagramPosts.astro';
 import { getServices, getSiteSettings } from '../lib/keystatic';
 import { renderMarkdoc } from '../lib/markdoc';
 
 const services = await getServices();
 const settings = await getSiteSettings();
 const bodyHtml = renderMarkdoc(services.bodyNode);
-const mailto = `mailto:${settings.email}?subject=${encodeURIComponent('Custom print project')}`;
-const startCta = { label: 'Start a project →', href: mailto };
+// Both buttons go to the contact form with "Making merch" preselected.
+const startCta = { label: 'Start a project →', href: '/contact?topic=merch' };
 ---
 
 <Base title="Make merch with us" description={services.intro}>
@@ -51,6 +52,13 @@ const startCta = { label: 'Start a project →', href: mailto };
     )
   }
 
+  <InstagramPosts
+    posts={services.videos}
+    eyebrow={services.videosEyebrow}
+    heading={services.videosHeading}
+    profileUrl={settings.social.instagram}
+  />
+
   {
     services.steps.length > 0 && (
       <section class="section wrap">
@@ -76,7 +84,7 @@ const startCta = { label: 'Start a project →', href: mailto };
     <div class="cta panel">
       <h2>{services.ctaHeading}</h2>
       <p>{services.ctaBody}</p>
-      <a class="btn btn--mustard" href={mailto}>Email {settings.email} →</a>
+      <a class="btn btn--mustard" href={startCta.href}>{startCta.label}</a>
     </div>
   </section>
 </Base>

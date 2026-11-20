@@ -20,6 +20,13 @@ const looksLikeEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const escapeHtml = (v: string) =>
   v.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
+// Keep in sync with TOPICS in src/pages/contact.astro. Anything else counts as a general message.
+const TOPICS: Record<string, string> = {
+  question: 'Contact form',
+  merch: 'Merch project',
+  order: 'Order question',
+};
+
 type EmailBinding = { send: (message: Record<string, unknown>) => Promise<unknown> };
 
 /** The `EMAIL` send binding, or undefined when not on the Cloudflare runtime. */
@@ -67,6 +74,8 @@ export const POST: APIRoute = async ({ request }) => {
   const name = clamp(fields.name, 200);
   const email = clamp(fields.email, 320);
   const message = clamp(fields.message, 5000);
+  const topicKey = clamp(fields.topic, 40);
+  const topic = Object.hasOwn(TOPICS, topicKey) ? TOPICS[topicKey] : TOPICS.question;
 
   if (!name || !email || !message) return done(false, 'Please fill in your name, email, and a message.');
   if (!looksLikeEmail(email)) return done(false, 'That email address doesn’t look right.');
@@ -82,8 +91,8 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  const text = `From: ${name} <${email}>\n\n${message}`;
-  const html = `<p><strong>${escapeHtml(name)}</strong> &lt;${escapeHtml(email)}&gt;</p><p style="white-space:pre-wrap">${escapeHtml(
+  const text = `${topic}\nFrom: ${name} <${email}>\n\n${message}`;
+  const html = `<p><strong>${escapeHtml(topic)}</strong></p><p><strong>${escapeHtml(name)}</strong> &lt;${escapeHtml(email)}&gt;</p><p style="white-space:pre-wrap">${escapeHtml(
     message,
   )}</p>`;
 
@@ -92,7 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
       to: SHOP_INBOX,
       from: FROM,
       replyTo: email,
-      subject: `Contact form — ${name}`,
+      subject: `${topic} — ${name}`,
       text,
       html,
     });

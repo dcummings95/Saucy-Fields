@@ -11,6 +11,19 @@ const social = [
   { label: 'TikTok', href: settings.social.tiktok },
   { label: 'Facebook', href: settings.social.facebook },
 ].filter((s) => s.href);
+
+// Keep `value`s in sync with TOPICS in src/pages/api/contact.ts.
+// Linking to /contact?topic=merch preselects that option.
+const TOPICS = [
+  { value: 'question', label: 'A question, or something else', messageLabel: "What's up?", placeholder: '' },
+  {
+    value: 'merch',
+    label: 'Making merch with us',
+    messageLabel: 'Tell us about it',
+    placeholder: 'What are you making, about how many, and when do you need them? Mention any art you already have.',
+  },
+  { value: 'order', label: 'An order I placed', messageLabel: "What's up?", placeholder: 'Which order, and what do you need?' },
+];
 ---
 
 <Base title="Contact" description={`Get in touch with Saucy Fields in ${settings.location.city}, ${settings.location.region}.`}>
@@ -61,8 +74,20 @@ const social = [
           <input type="email" name="email" required />
         </label>
         <label>
-          <span>What's up?</span>
-          <textarea name="message" rows="5" required></textarea>
+          <span>What's this about?</span>
+          <select name="topic" data-topic>
+            {
+              TOPICS.map((t) => (
+                <option value={t.value} data-label={t.messageLabel} data-placeholder={t.placeholder}>
+                  {t.label}
+                </option>
+              ))
+            }
+          </select>
+        </label>
+        <label>
+          <span data-message-label>{TOPICS[0].messageLabel}</span>
+          <textarea name="message" rows="5" required placeholder={TOPICS[0].placeholder}></textarea>
         </label>
         <button type="submit" class="btn btn--primary btn--block">Send it</button>
       </form>
@@ -86,8 +111,23 @@ const social = [
     errorBox.removeAttribute('hidden');
   };
 
+  // Topic picker: preselect from ?topic= and retitle the message box to match.
+  const topicEl = document.querySelector<HTMLSelectElement>('[data-topic]');
+  const messageLabel = document.querySelector<HTMLElement>('[data-message-label]');
+  const messageEl = document.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
+  const syncTopic = () => {
+    const opt = topicEl?.selectedOptions[0];
+    if (!opt) return;
+    if (messageLabel) messageLabel.textContent = opt.dataset.label ?? "What's up?";
+    if (messageEl) messageEl.placeholder = opt.dataset.placeholder ?? '';
+  };
+  topicEl?.addEventListener('change', syncTopic);
+
   // No-JS submit posts straight to /api/contact, which 303s back here.
   const params = new URLSearchParams(location.search);
+  const wanted = params.get('topic');
+  if (topicEl && wanted && [...topicEl.options].some((o) => o.value === wanted)) topicEl.value = wanted;
+  syncTopic();
   if (params.get('sent') === '1') showThanks();
   if (params.get('error') === '1') showError('Something went wrong. Please try again or email us directly.');
 
@@ -131,6 +171,7 @@ const social = [
   .contact__form label { display: grid; gap: 0.3rem; }
   .contact__form label > span { font-family: var(--font-display); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em; }
   .contact__form input,
+  .contact__form select,
   .contact__form textarea { font: inherit; padding: 0.6rem 0.7rem; border: var(--border); border-radius: var(--radius); background: var(--paper); width: 100%; }
   .contact__hp { position: absolute; left: -5000px; }
   .contact__thanks { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; }
