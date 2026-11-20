@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import Hero from '../components/Hero.astro';
+import PageHero from '../components/PageHero.astro';
 import PageSections from '../components/PageSections.astro';
 import { getPages, getPage } from '../lib/keystatic';
 import { renderMarkdoc } from '../lib/markdoc';
@@ -18,28 +18,16 @@ const entry = await getPage(page!);
 if (!entry) return Astro.redirect('/');
 
 const html = renderMarkdoc(entry.contentNode);
-const hero = entry.hero.discriminant ? entry.hero.value : null;
+const hasHero = entry.hero.discriminant !== 'none';
+const heroSubtext = entry.hero.discriminant === 'none' ? null : entry.hero.value.subtext;
 ---
 
-<Base title={entry.title} description={entry.description || hero?.subtext || undefined}>
+<Base title={entry.title} description={entry.description || heroSubtext || undefined}>
+  <PageHero hero={entry.hero} title={entry.title} />
   {
-    hero && (
-      <Hero
-        image={hero.image}
-        imageMobile={hero.imageMobile}
-        alt={hero.imageAlt}
-        eyebrow={hero.eyebrow}
-        headline={hero.headline?.trim() || entry.title}
-        subtext={hero.subtext}
-        primary={hero.primaryCta}
-        secondary={hero.secondaryCta}
-      />
-    )
-  }
-  {
-    (!hero || html) && (
+    (!hasHero || html) && (
       <section class="section wrap page">
-        {!hero && <h1>{entry.title}</h1>}
+        {!hasHero && <h1>{entry.title}</h1>}
         {html && <div class="prose" set:html={html} />}
       </section>
     )

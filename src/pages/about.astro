@@ -4,37 +4,29 @@ import SectionHeading from '../components/SectionHeading.astro';
 import { getAbout, getSiteSettings } from '../lib/keystatic';
 import { renderMarkdoc } from '../lib/markdoc';
 import CmsImage from '../components/CmsImage.astro';
+import PageHero from '../components/PageHero.astro';
 
 const about = await getAbout();
 const settings = await getSiteSettings();
 const storyHtml = renderMarkdoc(about.storyNode);
+const hasHero = about.hero.discriminant !== 'none';
 ---
 
 <Base title="About" description={about.intro}>
-  <section class="section wrap">
-    <SectionHeading eyebrow="Who we are" title={about.heading} as="h1">
-      <p>{about.intro}</p>
-    </SectionHeading>
+  <PageHero hero={about.hero} title={about.heading} subtext={about.intro} eyebrow={about.eyebrow} />
 
-    <div class="about__top">
-      <div class="prose">
-        <Fragment set:html={storyHtml} />
-      </div>
-      {
-        about.image && (
-          <figure class="about__photo panel">
-            <CmsImage
-              src={about.image}
-              alt={about.imageAlt}
-              width={1500}
-              height={844}
-              sizes="(max-width: 900px) 92vw, 480px"
-            />
-          </figure>
-        )
-      }
-    </div>
-  </section>
+  {
+    (!hasHero || storyHtml) && (
+      <section class="section wrap">
+        {!hasHero && (
+          <SectionHeading eyebrow={about.eyebrow || undefined} title={about.heading} as="h1">
+            <p>{about.intro}</p>
+          </SectionHeading>
+        )}
+        {storyHtml && <div class="prose" set:html={storyHtml} />}
+      </section>
+    )
+  }
 
   {
     about.founders.length > 0 && (
@@ -94,11 +86,6 @@ const storyHtml = renderMarkdoc(about.storyNode);
 </Base>
 
 <style>
-  .about__top { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(1.5rem, 5vw, 3rem); align-items: start; }
-  .about__photo { overflow: hidden; margin: 0; }
-  /* <img> comes from <CmsImage> (its own scope) — reach it with :global. */
-  .about__photo :global(img) { width: 100%; height: auto; display: block; }
-
   .founders { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
   .founder { display: flex; gap: 1rem; padding: 1.3rem; color: var(--ink); }
   .founder :global(.founder__img) { width: 92px; height: 92px; object-fit: cover; border: 2.5px solid var(--ink); border-radius: 4px; flex-shrink: 0; }
@@ -116,7 +103,6 @@ const storyHtml = renderMarkdoc(about.storyNode);
   .here p { max-width: 44ch; margin-inline: auto; margin-bottom: 1.2rem; }
 
   @media (max-width: 820px) {
-    .about__top { grid-template-columns: 1fr; }
     .founders { grid-template-columns: 1fr; }
     .process { grid-template-columns: 1fr; }
   }

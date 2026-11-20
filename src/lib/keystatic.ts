@@ -97,6 +97,18 @@ export async function getServices() {
   return { ...services, bodyNode: body?.node ?? null };
 }
 
+export async function getShopPage() {
+  const shop = await reader.singletons.shopPage.read();
+  if (!shop) throw new Error('shopPage singleton is missing');
+  return shop;
+}
+
+export async function getContactPage() {
+  const contact = await reader.singletons.contactPage.read();
+  if (!contact) throw new Error('contactPage singleton is missing');
+  return contact;
+}
+
 export type PageEntry = NonNullable<Awaited<ReturnType<typeof getPage>>>;
 
 export async function getPages() {

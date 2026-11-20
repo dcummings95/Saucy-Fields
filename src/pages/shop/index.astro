@@ -2,10 +2,12 @@
 import Base from '../../layouts/Base.astro';
 import SectionHeading from '../../components/SectionHeading.astro';
 import ProductCard from '../../components/ProductCard.astro';
-import { getProducts } from '../../lib/keystatic';
+import PageHero from '../../components/PageHero.astro';
+import { getProducts, getShopPage } from '../../lib/keystatic';
 import { slugify } from '../../lib/slug';
 
 const products = await getProducts();
+const shop = await getShopPage();
 
 const types = [...new Set(products.map((p) => p.type))];
 const typeLabels: Record<string, string> = { shirt: 'Shirts', poster: 'Posters', other: 'Other' };
@@ -18,10 +20,15 @@ const ORIGINALS = 'saucy-fields-originals';
 ---
 
 <Base title="Shop" description="Screen-printed shirts and posters from Saucy Fields and the folks we print for.">
+  <PageHero hero={shop.hero} title={shop.heading} subtext={shop.intro} eyebrow={shop.eyebrow} />
   <section class="section wrap">
-    <SectionHeading eyebrow="The shop" title="Everything we're printing right now" as="h1">
-      <p>Small runs, hand-drawn art. When something sells out we note it — sometimes we reprint.</p>
-    </SectionHeading>
+    {
+      shop.hero.discriminant === 'none' && (
+        <SectionHeading eyebrow={shop.eyebrow || undefined} title={shop.heading} as="h1">
+          {shop.intro && <p>{shop.intro}</p>}
+        </SectionHeading>
+      )
+    }
 
     <div class="filters" data-filters>
       <label class="filters__search">

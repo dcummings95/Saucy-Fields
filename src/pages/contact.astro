@@ -1,9 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import { getSiteSettings } from '../lib/keystatic';
+import PageHero from '../components/PageHero.astro';
+import { getContactPage, getSiteSettings } from '../lib/keystatic';
 
 const settings = await getSiteSettings();
+const contact = await getContactPage();
 const social = [
   { label: 'Instagram', href: settings.social.instagram },
   { label: 'TikTok', href: settings.social.tiktok },
@@ -12,11 +14,16 @@ const social = [
 ---
 
 <Base title="Contact" description={`Get in touch with Saucy Fields in ${settings.location.city}, ${settings.location.region}.`}>
+  <PageHero hero={contact.hero} title={contact.heading} subtext={contact.intro} eyebrow={contact.eyebrow} />
   <section class="section wrap contact">
     <div>
-      <SectionHeading eyebrow="Say hi" title="Get in touch" as="h1">
-        <p>Send an email, reach out on socials, or use the form. We'd love to hear from you.</p>
-      </SectionHeading>
+      {
+        contact.hero.discriminant === 'none' && (
+          <SectionHeading eyebrow={contact.eyebrow || undefined} title={contact.heading} as="h1">
+            {contact.intro && <p>{contact.intro}</p>}
+          </SectionHeading>
+        )
+      }
 
       <dl class="contact__list">
         <dt>Email</dt>

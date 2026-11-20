@@ -1,4 +1,4 @@
-import { config, collection, singleton, fields } from '@keystatic/core';
+import { config, collection, singleton, fields, type ComponentSchema } from '@keystatic/core';
 import { RESERVED_SLUGS, RESERVED_SLUG_RE } from './src/lib/reserved-slugs';
 
 /**
@@ -51,13 +51,131 @@ const richText = (label: string, folder: string) =>
     },
   });
 
+/* Field helpers for the Extra pages builder. */
+const pageImage = (label: string, description?: string, required = false) =>
+  fields.image({
+    label,
+    description,
+    directory: 'public/images/pages',
+    publicPath: '/images/pages/',
+    validation: { isRequired: required },
+  });
+
+const altText = () => fields.text({ label: 'Image alt text', description: 'Describe the photo for screen readers.' });
+
+const photoSide = () =>
+  fields.select({
+    label: 'Photo side',
+    options: [
+      { label: 'Right', value: 'right' },
+      { label: 'Left', value: 'left' },
+    ],
+    defaultValue: 'right',
+  });
+
+/** Where the full-width banner's headline group sits (see Hero.astro). */
+const heroTextPosition = () =>
+  fields.select({
+    label: 'Headline position',
+    description: 'The small label always stays at the top. This moves the headline, text and buttons.',
+    options: [
+      { label: 'Spread — headline at the top, buttons at the bottom', value: 'spread' },
+      { label: 'Top', value: 'top' },
+      { label: 'Middle', value: 'middle' },
+      { label: 'Bottom', value: 'bottom' },
+    ],
+    defaultValue: 'spread',
+  });
+
+const button = (label: string) =>
+  fields.object({ label: fields.text({ label: 'Label' }), href: fields.text({ label: 'Link' }) }, { label });
+
+const heroButtons = () => ({
+  primaryCta: button('Main button (optional)'),
+  secondaryCta: button('Second button (optional)'),
+});
+
+/** Headline fields for Extra pages, which have no heading/intro of their own. */
+const heroText = () => ({
+  eyebrow: fields.text({ label: 'Small label above the headline', description: 'Optional, e.g. "Holiday sale".' }),
+  headline: fields.text({
+    label: 'Headline',
+    description: 'Leave blank to use the page title. The last word renders in the accent colour.',
+    multiline: true,
+  }),
+  subtext: fields.text({ label: 'Text under the headline', description: 'Optional, keep it short.', multiline: true }),
+});
+
+/**
+ * The "Top of the page" picker, shared by every page except the homepage.
+ * Rendered by src/components/PageHero.astro.
+ *
+ * `folder` must be unique per singleton: Keystatic names singleton uploads
+ * after the field path (no per-entry subfolder like collections get), so two
+ * singletons sharing a folder would overwrite each other's hero photo.
+ *
+ * `text` adds headline/subtext fields to the hero (Extra pages pass
+ * `heroText()`). Singletons pass `{}`: their "Page heading" and "Intro"
+ * fields already are the hero text. Generic so the reader keeps the types.
+ */
+const heroPicker = <T extends Record<string, ComponentSchema>>(folder: string, text: T) => {
+  const ownText = Object.keys(text).length > 0;
+  const img = (label: string, description: string, required = false) =>
+    fields.image({
+      label,
+      description,
+      directory: `public/images/${folder}`,
+      publicPath: `/images/${folder}/`,
+      validation: { isRequired: required },
+    });
+  return fields.conditional(
+    fields.select({
+      label: 'Top of the page',
+      description: ownText
+        ? 'How the page opens. "No hero" is a plain title over the body.'
+        : 'How the page opens. The page heading, intro and small label above are used as the hero text.',
+      options: [
+        { label: 'No hero — just the heading', value: 'none' },
+        { label: 'Full-width photo banner (like the homepage)', value: 'full' },
+        { label: 'Split — headline beside a photo', value: 'split' },
+      ],
+      defaultValue: 'none',
+    }),
+    {
+      none: fields.empty(),
+      full: fields.object({
+        image: img('Hero image', 'Wide shot — shown on tablet and desktop.', true),
+        imageMobile: img(
+          'Hero image — mobile',
+          'Optional taller crop shown on phones. Falls back to the wide image if empty.',
+        ),
+        imageAlt: altText(),
+        textPosition: heroTextPosition(),
+        ...text,
+        ...heroButtons(),
+      }),
+      split: fields.object({
+        image: img('Photo', 'Shown beside the headline; stacks under it on phones.', true),
+        imageAlt: altText(),
+        photoSide: photoSide(),
+        ...text,
+        ...heroButtons(),
+      }),
+    },
+  );
+};
+
+/** Small label over a singleton page's heading (shown with or without a hero). */
+const eyebrowField = (defaultValue: string) =>
+  fields.text({ label: 'Small label above the heading', description: 'Optional.', defaultValue });
+
 export default config({
   storage,
   ui: {
     brand: { name: 'Saucy Fields' },
     navigation: {
       Shop: ['products'],
-      Pages: ['homepage', 'about', 'services', 'pages'],
+      Pages: ['homepage', 'about', 'services', 'shopPage', 'contactPage', 'pages'],
       Settings: ['siteSettings'],
     },
   },
@@ -173,47 +291,8 @@ export default config({
           multiline: true,
         }),
         showInFooter: fields.checkbox({ label: 'Link from the site footer', defaultValue: true }),
-        hero: fields.conditional(
-          fields.checkbox({
-            label: 'Big hero banner at the top',
-            description: 'A full-width photo with a headline and buttons, like the homepage.',
-            defaultValue: false,
-          }),
-          {
-            false: fields.empty(),
-            true: fields.object({
-              image: fields.image({
-                label: 'Hero image',
-                description: 'Wide shot — shown on tablet and desktop.',
-                directory: 'public/images/pages',
-                publicPath: '/images/pages/',
-                validation: { isRequired: true },
-              }),
-              imageMobile: fields.image({
-                label: 'Hero image — mobile',
-                description: 'Optional taller crop shown on phones. Falls back to the wide image if empty.',
-                directory: 'public/images/pages',
-                publicPath: '/images/pages/',
-              }),
-              imageAlt: fields.text({ label: 'Image alt text', description: 'Describe the photo for screen readers.' }),
-              eyebrow: fields.text({ label: 'Small label above the headline', description: 'Optional, e.g. "Holiday sale".' }),
-              headline: fields.text({
-                label: 'Headline',
-                description: 'Leave blank to use the page title. The last word renders in the accent colour.',
-                multiline: true,
-              }),
-              subtext: fields.text({ label: 'Text under the headline', description: 'Optional, keep it short.', multiline: true }),
-              primaryCta: fields.object(
-                { label: fields.text({ label: 'Label' }), href: fields.text({ label: 'Link' }) },
-                { label: 'Main button (optional)' },
-              ),
-              secondaryCta: fields.object(
-                { label: fields.text({ label: 'Label' }), href: fields.text({ label: 'Link' }) },
-                { label: 'Second button (optional)' },
-              ),
-            }),
-          },
-        ),
+        // Collections get a per-slug subfolder, so all Extra pages can share one.
+        hero: heroPicker('pages', heroText()),
         content: richText('Body', 'pages'),
         sections: fields.blocks(
           {
@@ -224,6 +303,18 @@ export default config({
                 body: fields.markdoc.inline({ label: 'Text', options: { image: false } }),
               }),
               itemLabel: (props) => `Text${props.fields.heading.value ? ` — ${props.fields.heading.value}` : ''}`,
+            },
+            textPhoto: {
+              label: 'Text + photo',
+              schema: fields.object({
+                heading: fields.text({ label: 'Heading (optional)' }),
+                body: fields.markdoc.inline({ label: 'Text', options: { image: false } }),
+                image: pageImage('Photo', undefined, true),
+                imageAlt: altText(),
+                photoSide: photoSide(),
+                cta: button('Button (optional)'),
+              }),
+              itemLabel: (props) => `Text + photo${props.fields.heading.value ? ` — ${props.fields.heading.value}` : ''}`,
             },
             products: {
               label: 'Product grid',
@@ -413,6 +504,7 @@ export default config({
           publicPath: '/images/brand/',
         }),
         heroImageAlt: fields.text({ label: 'Hero image alt text', defaultValue: 'Isaac and Spencer of Saucy Fields' }),
+        heroTextPosition: heroTextPosition(),
         primaryCta: fields.object(
           {
             label: fields.text({ label: 'Label', defaultValue: 'Shop the merch' }),
@@ -451,20 +543,14 @@ export default config({
       path: 'src/content/about/',
       format: { contentField: 'story' },
       schema: {
+        eyebrow: eyebrowField('Who we are'),
         heading: fields.text({ label: 'Page heading', defaultValue: 'About Saucy Fields' }),
         intro: fields.text({
           label: 'Intro line',
           multiline: true,
           defaultValue: 'Two friends, a stack of screens, and a soft spot for the local scene.',
         }),
-        image: fields.image({
-          label: 'Photo',
-          // Own directory: Keystatic names saved images after the field key, so
-          // keeping this apart from the homepage hero avoids any filename clash.
-          directory: 'public/images/about',
-          publicPath: '/images/about/',
-        }),
-        imageAlt: fields.text({ label: 'Photo alt text', defaultValue: 'Isaac and Spencer of Saucy Fields' }),
+        hero: heroPicker('about', {}),
         founders: fields.array(
           fields.object({
             name: fields.text({ label: 'Name' }),
@@ -495,6 +581,7 @@ export default config({
       path: 'src/content/services/',
       format: { contentField: 'body' },
       schema: {
+        eyebrow: eyebrowField('Custom work'),
         heading: fields.text({ label: 'Page heading', defaultValue: 'Make merch with us' }),
         intro: fields.text({
           label: 'Intro',
@@ -502,6 +589,7 @@ export default config({
           defaultValue:
             "Need shirts, posters, or a full merch run? We handle the whole thing — art, print, and delivery — whether it's for a band, a business, or a one-time event.",
         }),
+        hero: heroPicker('services', {}),
         offeringsHeading: fields.text({ label: 'Offerings heading', defaultValue: 'What we offer' }),
         offerings: fields.array(
           fields.object({
@@ -525,6 +613,38 @@ export default config({
           defaultValue: 'Send us a note with your project, your timeline, and any art you already have.',
         }),
         body: richText('Extra content (optional)', 'services'),
+      },
+    }),
+
+    shopPage: singleton({
+      label: 'Shop page',
+      path: 'src/content/shop/',
+      format: { data: 'json' },
+      schema: {
+        eyebrow: eyebrowField('The shop'),
+        heading: fields.text({ label: 'Page heading', defaultValue: "Everything we're printing right now" }),
+        intro: fields.text({
+          label: 'Intro',
+          multiline: true,
+          defaultValue: 'Small runs, hand-drawn art. When something sells out we note it — sometimes we reprint.',
+        }),
+        hero: heroPicker('shop', {}),
+      },
+    }),
+
+    contactPage: singleton({
+      label: 'Contact page',
+      path: 'src/content/contact/',
+      format: { data: 'json' },
+      schema: {
+        eyebrow: eyebrowField('Say hi'),
+        heading: fields.text({ label: 'Page heading', defaultValue: 'Get in touch' }),
+        intro: fields.text({
+          label: 'Intro',
+          multiline: true,
+          defaultValue: "Send an email, reach out on socials, or use the form. We'd love to hear from you.",
+        }),
+        hero: heroPicker('contact', {}),
       },
     }),
   },

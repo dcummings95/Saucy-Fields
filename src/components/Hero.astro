@@ -1,11 +1,18 @@
 ---
 import { webpSrcset } from '../lib/img';
+import { splitHeadline } from '../lib/headline';
 
 /**
  * Full-bleed photo hero with a poster-style headline and up to two buttons.
- * Used by the homepage and by Extra pages that switch the hero on.
+ * Used by the homepage and by any page whose "Top of the page" is the banner.
  * The last word of the headline knocks out in the accent colour.
+ *
+ * The eyebrow always sits at the top. `position` moves the headline, subtext
+ * and buttons as one group: top / middle / bottom, or 'spread' (headline at
+ * the top, buttons pinned to the bottom, the original homepage layout).
  */
+export type HeroTextPosition = 'spread' | 'top' | 'middle' | 'bottom';
+
 interface Cta {
   label?: string | null;
   href?: string | null;
@@ -19,13 +26,13 @@ interface Props {
   subtext?: string | null;
   primary?: Cta | null;
   secondary?: Cta | null;
+  position?: HeroTextPosition | null;
 }
 
-const { image, imageMobile, alt, eyebrow, headline, subtext, primary, secondary } = Astro.props;
+const { image, imageMobile, alt, eyebrow, headline, subtext, primary, secondary, position } = Astro.props;
+const pos: HeroTextPosition = position ?? 'spread';
 
-const words = headline.trim().split(/\s+/);
-const last = words.length > 1 ? words.pop()! : '';
-const lead = words.join(' ');
+const { lead, last } = splitHeadline(headline);
 
 // WebP variants only exist after `astro build` (see src/lib/img.ts).
 const webp = image ? webpSrcset(image) : '';
@@ -35,7 +42,7 @@ const showPrimary = !!(primary?.label && primary?.href);
 const showSecondary = !!(secondary?.label && secondary?.href);
 ---
 
-<section class="hero">
+<section class={`hero hero--${pos}`}>
   {
     image && (
       <picture class="hero__pic">
@@ -63,26 +70,28 @@ const showSecondary = !!(secondary?.label && secondary?.href);
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__inner">
     {eyebrow && <span class="eyebrow hero__eyebrow">{eyebrow}</span>}
-    <h1 class="hero__title">
-      {lead} {last && <span class="hero__accent">{last}</span>}
-    </h1>
-    {subtext && <p class="hero__sub">{subtext}</p>}
-    {
-      (showPrimary || showSecondary) && (
-        <div class="hero__cta">
-          {showPrimary && (
-            <a class="btn btn--primary" href={primary!.href}>
-              {primary!.label}
-            </a>
-          )}
-          {showSecondary && (
-            <a class="btn hero__btn" href={secondary!.href}>
-              {secondary!.label}
-            </a>
-          )}
-        </div>
-      )
-    }
+    <div class="hero__body">
+      <h1 class="hero__title">
+        {lead} {last && <span class="hero__accent">{last}</span>}
+      </h1>
+      {subtext && <p class="hero__sub">{subtext}</p>}
+      {
+        (showPrimary || showSecondary) && (
+          <div class="hero__cta">
+            {showPrimary && (
+              <a class="btn btn--primary" href={primary!.href}>
+                {primary!.label}
+              </a>
+            )}
+            {showSecondary && (
+              <a class="btn hero__btn" href={secondary!.href}>
+                {secondary!.label}
+              </a>
+            )}
+          </div>
+        )
+      }
+    </div>
   </div>
 </section>
 
@@ -115,6 +124,24 @@ const showSecondary = !!(secondary?.label && secondary?.href);
     align-items: center;
     text-align: center;
     padding: clamp(1.5rem, 4vw, 2.75rem);
+  }
+  /* Everything under the eyebrow. Fills the leftover height so the group can
+     sit at the top, middle or bottom of it. */
+  .hero__body {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero--middle .hero__body { justify-content: center; }
+  .hero--bottom .hero__body { justify-content: flex-end; }
+  /* With text in the middle, darken the centre a little too. */
+  .hero--middle .hero__scrim {
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 52%, rgba(23, 21, 18, 0.28), rgba(23, 21, 18, 0) 100%),
+      linear-gradient(to bottom, rgba(23, 21, 18, 0.22) 0%, rgba(23, 21, 18, 0) 30%, rgba(23, 21, 18, 0) 75%, rgba(23, 21, 18, 0.25) 100%);
   }
   .hero__eyebrow {
     margin: 0 0 clamp(1rem, 3vw, 1.75rem);
@@ -154,12 +181,14 @@ const showSecondary = !!(secondary?.label && secondary?.href);
     text-wrap: pretty;
   }
   .hero__cta {
-    margin-top: auto;
+    margin-top: clamp(1rem, 3vw, 1.5rem);
     display: flex;
     flex-wrap: wrap;
     gap: 0.8rem;
     justify-content: center;
   }
+  /* 'spread': buttons pinned to the bottom, away from the headline. */
+  .hero--spread .hero__cta { margin-top: auto; padding-top: 1rem; }
   .hero__btn { background: var(--paper); }
 
   @media (max-width: 640px) {

@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import SectionHeading from '../components/SectionHeading.astro';
+import PageHero from '../components/PageHero.astro';
 import { getServices, getSiteSettings } from '../lib/keystatic';
 import { renderMarkdoc } from '../lib/markdoc';
 
@@ -8,15 +9,29 @@ const services = await getServices();
 const settings = await getSiteSettings();
 const bodyHtml = renderMarkdoc(services.bodyNode);
 const mailto = `mailto:${settings.email}?subject=${encodeURIComponent('Custom print project')}`;
+const startCta = { label: 'Start a project →', href: mailto };
 ---
 
 <Base title="Make merch with us" description={services.intro}>
-  <section class="section wrap">
-    <SectionHeading eyebrow="Custom work" title={services.heading} as="h1">
-      <p>{services.intro}</p>
-    </SectionHeading>
-    <a class="btn btn--primary" href={mailto}>Start a project →</a>
-  </section>
+  <PageHero
+    hero={services.hero}
+    title={services.heading}
+    subtext={services.intro}
+    eyebrow={services.eyebrow}
+    fallbackCta={startCta}
+  />
+  {
+    services.hero.discriminant === 'none' && (
+      <section class="section wrap">
+        <SectionHeading eyebrow={services.eyebrow || undefined} title={services.heading} as="h1">
+          <p>{services.intro}</p>
+        </SectionHeading>
+        <a class="btn btn--primary" href={startCta.href}>
+          {startCta.label}
+        </a>
+      </section>
+    )
+  }
 
   {
     services.offerings.length > 0 && (

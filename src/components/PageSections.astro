@@ -2,6 +2,7 @@
 import SectionHeading from './SectionHeading.astro';
 import ProductCard from './ProductCard.astro';
 import CmsImage from './CmsImage.astro';
+import SplitFeature from './SplitFeature.astro';
 import { getProducts, type PageEntry } from '../lib/keystatic';
 import { renderMarkdoc } from '../lib/markdoc';
 import { slugify } from '../lib/slug';
@@ -42,6 +43,26 @@ function pickProducts(b: ProductsBlock) {
           <section class="section--tight wrap ps-text">
             {block.value.heading && <h2>{block.value.heading}</h2>}
             <div class="prose" set:html={html} />
+          </section>
+        );
+      }
+
+      case 'textPhoto': {
+        const b = block.value;
+        const html = renderMarkdoc(b.body?.node);
+        return (
+          <section class="section wrap">
+            <SplitFeature image={b.image} alt={b.imageAlt} side={b.photoSide}>
+              {b.heading && <h2 class="ps-split__heading">{b.heading}</h2>}
+              {html && <div class="prose" set:html={html} />}
+              {b.cta.label && b.cta.href && (
+                <p class="ps-split__cta">
+                  <a class="btn btn--primary" href={b.cta.href}>
+                    {b.cta.label}
+                  </a>
+                </p>
+              )}
+            </SplitFeature>
           </section>
         );
       }
@@ -140,6 +161,8 @@ function pickProducts(b: ProductsBlock) {
 
 <style>
   .ps-text h2 { margin-top: 0; }
+  .ps-split__heading { margin-top: 0; margin-bottom: 1rem; }
+  .ps-split__cta { margin: 1.5rem 0 0; }
 
   .ps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1rem, 3vw, 1.8rem); align-items: start; }
   .ps-more { margin-top: 2rem; }
