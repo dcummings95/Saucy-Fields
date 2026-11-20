@@ -177,7 +177,7 @@ export default config({
   ui: {
     brand: { name: 'Saucy Fields' },
     navigation: {
-      Shop: ['products'],
+      Shop: ['products', 'productHelp'],
       Pages: ['homepage', 'about', 'services', 'shopPage', 'contactPage', 'pages'],
       Settings: ['siteSettings'],
     },
@@ -439,6 +439,22 @@ export default config({
   },
 
   singletons: {
+    // Editor-only how-to that sits under Products in the sidebar. Nothing on
+    // the site reads it, so it never renders publicly.
+    productHelp: singleton({
+      label: 'Help: adding a product',
+      path: 'src/content/help/products/',
+      format: { contentField: 'guide' },
+      entryLayout: 'content',
+      schema: {
+        guide: fields.markdoc({
+          label: 'Guide',
+          description: 'Notes for whoever runs the shop. Not shown on the website.',
+          options: { image: false },
+        }),
+      },
+    }),
+
     siteSettings: singleton({
       label: 'Site settings',
       path: 'src/content/settings/site/',

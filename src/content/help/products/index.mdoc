@@ -1,0 +1,65 @@
+---
+{}
+---
+
+## Adding a product
+
+### Before you start
+
+- **Photos are JPG or PNG.** iPhone photos AirDropped to a Mac often arrive as HEIC, and those won't show on the site. Open them in Preview, then File → Export → JPEG. Uploading straight from your phone's browser usually converts them for you.
+- **The first photo does the most work.** It's the shop card, the checkout thumbnail, and the picture people see when the link gets shared. Cards crop it to a tall 3:4 frame from the top, so keep the design near the top-middle of the shot.
+
+### Step by step
+
+1. Go to **Products** and click **Add**.
+2. Type the **Product name**. The URL slug fills itself in.
+3. Leave **Status** on *Hidden* while you work. Save as often as you like; nobody sees it until you switch it.
+4. Enter the **Price**. Only use *Compare-at price* for a sale (see below).
+5. Add **Photos**. Drag them to change the order. Alt text is optional; something like "Pink shirt, front" is plenty.
+6. Fill in **Band / business / artist**, spelled the same way as their other products. Check the band dropdown on the shop page if you're unsure. Leave it blank for our own designs.
+7. Pick the **Type**: shirt, poster, or other.
+8. Tick the **Sizes** you're selling. Use *Other sizes* for one-offs like "Youth M". Posters: leave every size unticked.
+9. Add **Colors** if there's a choice, one per row. Buyers have to pick one.
+10. Write a **Short description**: one or two sentences. It sits under the price and shows in Google. The *Full description* is optional.
+11. Tick **Feature on homepage** for a new drop. The homepage shows four products, featured ones first.
+12. Switch **Status** to *Available* (or *Pre-sale*) and click **Save**.
+
+### After you save
+
+> Saving on the live site starts a rebuild. The product shows up in **a few minutes**, not instantly. If the shop looks unchanged right away, give it five minutes and refresh.
+
+Then open the product page once and check the photos, sizes and price.
+
+### Common jobs
+
+{% table %}
+- When
+- Do this
+---
+- A size sells out
+- Untick that size and save. It disappears from the size menu.
+---
+- The whole run sells out
+- Status → *Sold out*. It stays in the shop with a Sold out tag, sorted to the bottom, and can't be bought.
+---
+- Pull it off the site
+- Status → *Hidden*. Its page goes away on the next rebuild.
+---
+- Run a sale
+- Put the old price in *Compare-at price* and the sale price in *Price*. Clear Compare-at to end the sale.
+---
+- Take pre-orders
+- Status → *Pre-sale* and fill in the *Pre-sale note*, e.g. "Ships the week of Dec 8."
+---
+- Reprint something
+- Status back to *Available*. Set *Date added* to today to bump it to the top of the shop.
+{% /table %}
+
+### Please don't
+
+- Change the URL slug of a product that's already live. Links people have shared will break.
+- Delete a sold-out product. Mark it *Sold out* or *Hidden* instead, so its link keeps working and you can bring it back.
+
+### Where orders show up
+
+In **Stripe → Payments**. Each line has the size and colour in the item name, e.g. `Sugar Lads — Pot Explosion — M / Pink`, plus whether they chose shipping or local pickup.
