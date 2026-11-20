@@ -22,7 +22,8 @@ import keystaticConfig from './keystatic.config.ts';
 async function generateCatalog() {
   const reader = createReader(process.cwd(), keystaticConfig);
   const entries = await reader.collections.products.all();
-  const products = entries.map(({ slug, entry }) => ({
+  // Hidden (draft) products are left out, so checkout refuses them too.
+  const products = entries.filter(({ entry }) => entry.status !== 'draft').map(({ slug, entry }) => ({
     slug,
     name: entry.name,
     price: entry.price,

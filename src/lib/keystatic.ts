@@ -1,5 +1,5 @@
 import { createReader } from '@keystatic/core/reader';
-import keystaticConfig from '../../keystatic.config';
+import keystaticConfig, { SIZES } from '../../keystatic.config';
 
 /**
  * Build-time content reader. Every Astro page pulls content through this.
@@ -11,6 +11,7 @@ export const reader = createReader(process.cwd(), keystaticConfig);
 export type ProductEntry = Awaited<ReturnType<typeof getProducts>>[number];
 
 const STATUS_LABELS: Record<string, string> = {
+  draft: 'Hidden',
   available: 'Available',
   presale: 'Pre-sale',
   soldout: 'Sold out',
@@ -22,53 +23,51 @@ const TYPE_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
+type RawProduct = NonNullable<Awaited<ReturnType<typeof reader.collections.products.read>>>;
+
+/** Hidden products are left out of every page, the sitemap and checkout. */
+export const isPublished = (status: string) => status !== 'draft';
+
+async function shapeProduct(slug: string, entry: RawProduct) {
+  const description = await entry.description();
+  // Ticked sizes in shop order (XS → 3XL), then any one-off sizes.
+  const ticked = SIZES.filter((s) => entry.sizes.includes(s));
+  return {
+    slug,
+    ...entry,
+    // Who the design is for. Originals (no band) are credited to the shop.
+    maker: entry.band.trim() || 'Saucy Fields',
+    statusLabel: STATUS_LABELS[entry.status] ?? entry.status,
+    typeLabel: TYPE_LABELS[entry.type] ?? entry.type,
+    images: entry.images
+      .filter((image) => image.src)
+      .map((image) => ({ src: image.src!, alt: image.alt || entry.name })),
+    sizes: [...ticked, ...entry.otherSizes.map((s) => s.trim()).filter(Boolean)],
+    colors: entry.colors.map((c) => c.trim()).filter(Boolean),
+    descriptionNode: description?.node ?? null,
+  };
+}
+
 export async function getProducts() {
   const entries = await reader.collections.products.all();
   const products = await Promise.all(
-    entries.map(async (entry) => {
-      const description = await entry.entry.description();
-      return {
-        slug: entry.slug,
-        ...entry.entry,
-        // Who the design is for. Originals (no band) are credited to the shop.
-        maker: entry.entry.band || 'Saucy Fields',
-        statusLabel: STATUS_LABELS[entry.entry.status] ?? entry.entry.status,
-        typeLabel: TYPE_LABELS[entry.entry.type] ?? entry.entry.type,
-        images: entry.entry.images.map((image) => ({
-          src: image.src ?? '',
-          alt: image.alt || entry.entry.name,
-        })),
-        sizes: [...entry.entry.sizes],
-        colors: [...entry.entry.colors],
-        descriptionNode: description?.node ?? null,
-      };
-    }),
+    entries.filter((e) => isPublished(e.entry.status)).map((e) => shapeProduct(e.slug, e.entry)),
   );
-  // Sold-out items sink to the bottom; otherwise keep a stable name order.
+  // Sold-out items sink to the bottom; otherwise newest first, then by name.
   return products.sort((a, b) => {
     const rank = (s: string) => (s === 'soldout' ? 1 : 0);
-    return rank(a.status) - rank(b.status) || a.name.localeCompare(b.name);
+    return (
+      rank(a.status) - rank(b.status) ||
+      (b.added ?? '').localeCompare(a.added ?? '') ||
+      a.name.localeCompare(b.name)
+    );
   });
 }
 
 export async function getProduct(slug: string) {
   const entry = await reader.collections.products.read(slug);
-  if (!entry) return null;
-  const description = await entry.description();
-  return {
-    slug,
-    ...entry,
-    maker: entry.band || 'Saucy Fields',
-    statusLabel: STATUS_LABELS[entry.status] ?? entry.status,
-    typeLabel: TYPE_LABELS[entry.type] ?? entry.type,
-    images: entry.images.map((image) => ({
-      src: image.src ?? '',
-      alt: image.alt || entry.name,
-    })),
-    sizes: [...entry.sizes],
-    colors: [...entry.colors],
-    descriptionNode: description?.node ?? null,
-  };
+  if (!entry || !isPublished(entry.status)) return null;
+  return shapeProduct(slug, entry);
 }
 
 export async function getSiteSettings() {

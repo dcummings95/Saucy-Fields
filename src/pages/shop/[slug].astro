@@ -6,6 +6,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import { getProducts, getProduct } from '../../lib/keystatic';
 import { renderMarkdoc } from '../../lib/markdoc';
 import { usd } from '../../lib/format';
+import { slugify } from '../../lib/slug';
 
 export async function getStaticPaths() {
   const products = await getProducts();
@@ -17,7 +18,12 @@ const product = await getProduct(slug!);
 if (!product) return Astro.redirect('/shop');
 
 const all = await getProducts();
-const related = all.filter((p) => p.slug !== product.slug && (p.band === product.band || p.type === product.type)).slice(0, 4);
+// Same band first (matched by slug, so spelling/case slips still count), then same type.
+const sameBand = (p: typeof product) => slugify(p.band) === slugify(product.band);
+const related = all
+  .filter((p) => p.slug !== product.slug && (sameBand(p) || p.type === product.type))
+  .sort((a, b) => Number(sameBand(b)) - Number(sameBand(a)))
+  .slice(0, 4);
 const descriptionHtml = renderMarkdoc(product.descriptionNode);
 const onSale = product.compareAtPrice != null && product.compareAtPrice > product.price;
 const seo = product.seoDescription || product.shortDescription || `${product.name} — screen-printed by Saucy Fields.`;
@@ -40,6 +46,11 @@ const seo = product.seoDescription || product.shortDescription || `${product.nam
         {product.status === 'soldout' && <span class="tag tag--soldout">Sold out</span>}
       </p>
 
+      {
+        product.status === 'presale' && (
+          <p class="product__presale">{product.presaleNote.trim() || 'Ships once the print run is done.'}</p>
+        )
+      }
       {product.shortDescription && <p class="product__lede">{product.shortDescription}</p>}
 
       <AddToCart product={product} />
@@ -91,6 +102,16 @@ const seo = product.seoDescription || product.shortDescription || `${product.nam
     margin: 0.5rem 0 0.8rem;
   }
   .product__was { text-decoration: line-through; opacity: 0.45; font-weight: 500; }
+  .product__presale {
+    display: inline-block;
+    margin: 0 0 1rem;
+    padding: 0.4rem 0.7rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    background: var(--mustard);
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+  }
   .product__lede { font-size: 1.1rem; }
   .product__desc { margin-top: 2rem; border-top: 2.5px solid var(--ink); padding-top: 1.5rem; }
 

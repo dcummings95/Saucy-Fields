@@ -11,11 +11,16 @@ const shop = await getShopPage();
 
 const types = [...new Set(products.map((p) => p.type))];
 const typeLabels: Record<string, string> = { shirt: 'Shirts', poster: 'Posters', other: 'Other' };
-const bands = [...new Set(products.map((p) => p.band).filter(Boolean))].sort((a, b) =>
-  a!.localeCompare(b!),
-) as string[];
+// One entry per band, keyed by slug, so "Sugar Lads" and "sugar lads " don't
+// show up twice. The first spelling found is the one displayed.
+const bandsBySlug = new Map<string, string>();
+for (const p of products) {
+  const name = p.band.trim();
+  if (name && !bandsBySlug.has(slugify(name))) bandsBySlug.set(slugify(name), name);
+}
+const bands = [...bandsBySlug].sort((a, b) => a[1].localeCompare(b[1]));
 // Anything without a band is a Saucy Fields original.
-const hasOriginals = products.some((p) => !p.band);
+const hasOriginals = products.some((p) => !p.band.trim());
 const ORIGINALS = 'saucy-fields-originals';
 ---
 
@@ -49,8 +54,8 @@ const ORIGINALS = 'saucy-fields-originals';
               <select data-filter-band>
                 <option value="all">All designs</option>
                 {hasOriginals && <option value={ORIGINALS}>Saucy Fields</option>}
-                {bands.map((b) => (
-                  <option value={slugify(b)}>{b}</option>
+                {bands.map(([slug, name]) => (
+                  <option value={slug}>{name}</option>
                 ))}
               </select>
             </label>
@@ -67,7 +72,7 @@ const ORIGINALS = 'saucy-fields-originals';
           <div
             class="grid__item"
             data-type={p.type}
-            data-band={p.band ? slugify(p.band) : ORIGINALS}
+            data-band={p.band.trim() ? slugify(p.band) : ORIGINALS}
             data-search={`${p.name} ${p.maker}`.toLowerCase()}
           >
             <ProductCard product={p} index={i} />

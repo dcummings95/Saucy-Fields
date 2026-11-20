@@ -31,8 +31,11 @@ const productImage = (label: string) =>
     label,
     directory: 'public/images/products',
     publicPath: '/images/products/',
-    validation: { isRequired: false },
+    validation: { isRequired: true },
   });
+
+/** Standard apparel sizes, in the order they're shown to buyers. */
+export const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'] as const;
 
 /**
  * Rich-text field. Images inserted in the editor must land under `public/` or
@@ -185,8 +188,9 @@ export default config({
       slugField: 'name',
       path: 'src/content/products/*/',
       format: { contentField: 'description' },
-      entryLayout: 'content',
-      columns: ['name', 'price', 'status'],
+      // 'form' (the default) keeps photos, price and sizes in the main column.
+      // 'content' would squeeze them into a sidebar beside the description.
+      columns: ['name', 'status', 'price', 'band'],
       schema: {
         name: fields.slug({
           name: { label: 'Product name' },
@@ -195,9 +199,50 @@ export default config({
             description: 'The /shop/... address. Change with care once a product is public.',
           },
         }),
+        status: fields.select({
+          label: 'Status',
+          description: 'New products start hidden, so you can save as you go. Switch to Available when it is ready to sell.',
+          options: [
+            { label: 'Hidden — not on the site yet', value: 'draft' },
+            { label: 'Available', value: 'available' },
+            { label: 'Pre-sale', value: 'presale' },
+            { label: 'Sold out', value: 'soldout' },
+          ],
+          defaultValue: 'draft',
+        }),
+        presaleNote: fields.text({
+          label: 'Pre-sale note',
+          description:
+            'Only shown while the status is Pre-sale, under the price. e.g. "Ships the week of Dec 8." Leave blank for "Ships once the print run is done."',
+        }),
+        price: fields.number({
+          label: 'Price (USD)',
+          description: 'Dollars, e.g. 25 or 15.5. Card payments need at least $0.50.',
+          validation: { isRequired: true, min: 0.5 },
+        }),
+        compareAtPrice: fields.number({
+          label: 'Compare-at price (USD)',
+          description: 'Optional. Shows a struck-through "was" price and a Sale tag. Must be higher than the price.',
+        }),
+        images: fields.array(
+          fields.object({
+            src: productImage('Image'),
+            alt: fields.text({
+              label: 'Alt text',
+              description: 'Optional. Describe the photo for screen readers, e.g. "Pink shirt, front". Falls back to the product name.',
+            }),
+          }),
+          {
+            label: 'Photos',
+            description:
+              'JPG or PNG (iPhone HEIC photos will not show — export as JPG). The FIRST photo is the shop card, the checkout thumbnail and the link preview; cards crop it to a tall 3:4 frame from the top. Drag to reorder.',
+            itemLabel: (props) => props.fields.alt.value || 'Photo',
+          },
+        ),
         band: fields.text({
           label: 'Band / business / artist',
-          description: 'Who is this for? Shows on the product card and drives the shop filter. Leave blank for Saucy Fields originals.',
+          description:
+            'Who is this for? Shows on the product card and groups products in the shop filter, so spell it the same way every time. Leave blank for Saucy Fields originals.',
         }),
         type: fields.select({
           label: 'Type',
@@ -208,57 +253,40 @@ export default config({
           ],
           defaultValue: 'shirt',
         }),
-        price: fields.number({
-          label: 'Price (USD)',
-          description: 'Dollars, e.g. 25 or 15.5',
-          validation: { isRequired: true, min: 0 },
-        }),
-        compareAtPrice: fields.number({
-          label: 'Compare-at price (USD)',
-          description: 'Optional. Shows a struck-through "was" price for sales.',
-        }),
-        status: fields.select({
-          label: 'Status',
-          options: [
-            { label: 'Available', value: 'available' },
-            { label: 'Pre-sale', value: 'presale' },
-            { label: 'Sold out', value: 'soldout' },
-          ],
-          defaultValue: 'available',
-        }),
-        featured: fields.checkbox({
-          label: 'Feature on homepage',
-          defaultValue: false,
-        }),
-        shortDescription: fields.text({
-          label: 'Short description',
-          description: 'One line shown on shop cards.',
-          multiline: true,
-        }),
-        images: fields.array(
-          fields.object({
-            src: productImage('Image'),
-            alt: fields.text({ label: 'Alt text', description: 'Describe the image for screen readers.' }),
-          }),
-          {
-            label: 'Images',
-            itemLabel: (props) => props.fields.alt.value || 'Image',
-          },
-        ),
-        sizes: fields.array(fields.text({ label: 'Size' }), {
+        sizes: fields.multiselect({
           label: 'Sizes',
-          description: 'e.g. S, M, L, XL. Leave empty for one-size items like posters.',
-          itemLabel: (props) => props.value,
+          description: 'Tick every size you sell. Untick one when it runs out. Leave all unticked for one-size items like posters.',
+          options: SIZES.map((s) => ({ label: s, value: s })),
+        }),
+        otherSizes: fields.array(fields.text({ label: 'Size' }), {
+          label: 'Other sizes (optional)',
+          description: 'Anything not in the list above, e.g. "Youth M". Listed after the ticked sizes.',
+          itemLabel: (props) => props.value || 'Size',
         }),
         colors: fields.array(fields.text({ label: 'Color' }), {
           label: 'Colors',
-          description: 'Optional colour options.',
-          itemLabel: (props) => props.value,
+          description: 'Optional. Buyers pick one at checkout. Leave empty for a single colour.',
+          itemLabel: (props) => props.value || 'Color',
         }),
-        description: richText('Full description', 'products'),
+        shortDescription: fields.text({
+          label: 'Short description',
+          description: 'One or two sentences under the price on the product page. Also used for Google and link previews.',
+          multiline: true,
+        }),
+        description: richText('Full description (optional)', 'products'),
+        featured: fields.checkbox({
+          label: 'Feature on homepage',
+          description: 'The homepage shows up to 4 products, featured ones first.',
+          defaultValue: false,
+        }),
+        added: fields.date({
+          label: 'Date added',
+          description: 'Newest products show first in the shop. Filled in automatically.',
+          defaultValue: { kind: 'today' },
+        }),
         seoDescription: fields.text({
-          label: 'SEO description',
-          description: 'Optional. Overrides the short description in search results / link previews.',
+          label: 'SEO description (optional)',
+          description: 'Overrides the short description in Google results and link previews.',
           multiline: true,
         }),
       },
