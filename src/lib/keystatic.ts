@@ -97,18 +97,11 @@ export async function getServices() {
   return { ...services, bodyNode: body?.node ?? null };
 }
 
+export type PageEntry = NonNullable<Awaited<ReturnType<typeof getPage>>>;
+
 export async function getPages() {
   const entries = await reader.collections.pages.all();
-  return Promise.all(
-    entries.map(async (entry) => {
-      const content = await entry.entry.content();
-      return {
-        slug: entry.slug,
-        ...entry.entry,
-        contentNode: content?.node ?? null,
-      };
-    }),
-  );
+  return entries.map((entry) => ({ slug: entry.slug, ...entry.entry }));
 }
 
 export async function getPage(slug: string) {

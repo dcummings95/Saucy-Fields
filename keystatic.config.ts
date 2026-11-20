@@ -1,4 +1,5 @@
 import { config, collection, singleton, fields } from '@keystatic/core';
+import { RESERVED_SLUGS, RESERVED_SLUG_RE } from './src/lib/reserved-slugs';
 
 /**
  * Keystatic CMS configuration.
@@ -151,15 +152,169 @@ export default config({
       path: 'src/content/pages/*/',
       format: { contentField: 'content' },
       entryLayout: 'content',
+      columns: ['title', 'showInFooter'],
       schema: {
-        title: fields.slug({ name: { label: 'Title' } }),
+        title: fields.slug({
+          name: { label: 'Title' },
+          slug: {
+            label: 'URL slug',
+            description: 'The page lives at saucyfields.com/<slug>. Change with care once the page is public.',
+            validation: {
+              pattern: {
+                regex: RESERVED_SLUG_RE,
+                message: `Lowercase letters, numbers and dashes only, and not one of the built-in pages: ${RESERVED_SLUGS.join(', ')}.`,
+              },
+            },
+          },
+        }),
         description: fields.text({
           label: 'Short description',
           description: 'Used for the browser tab and link previews.',
           multiline: true,
         }),
         showInFooter: fields.checkbox({ label: 'Link from the site footer', defaultValue: true }),
+        hero: fields.conditional(
+          fields.checkbox({
+            label: 'Big hero banner at the top',
+            description: 'A full-width photo with a headline and buttons, like the homepage.',
+            defaultValue: false,
+          }),
+          {
+            false: fields.empty(),
+            true: fields.object({
+              image: fields.image({
+                label: 'Hero image',
+                description: 'Wide shot — shown on tablet and desktop.',
+                directory: 'public/images/pages',
+                publicPath: '/images/pages/',
+                validation: { isRequired: true },
+              }),
+              imageMobile: fields.image({
+                label: 'Hero image — mobile',
+                description: 'Optional taller crop shown on phones. Falls back to the wide image if empty.',
+                directory: 'public/images/pages',
+                publicPath: '/images/pages/',
+              }),
+              imageAlt: fields.text({ label: 'Image alt text', description: 'Describe the photo for screen readers.' }),
+              eyebrow: fields.text({ label: 'Small label above the headline', description: 'Optional, e.g. "Holiday sale".' }),
+              headline: fields.text({
+                label: 'Headline',
+                description: 'Leave blank to use the page title. The last word renders in the accent colour.',
+                multiline: true,
+              }),
+              subtext: fields.text({ label: 'Text under the headline', description: 'Optional, keep it short.', multiline: true }),
+              primaryCta: fields.object(
+                { label: fields.text({ label: 'Label' }), href: fields.text({ label: 'Link' }) },
+                { label: 'Main button (optional)' },
+              ),
+              secondaryCta: fields.object(
+                { label: fields.text({ label: 'Label' }), href: fields.text({ label: 'Link' }) },
+                { label: 'Second button (optional)' },
+              ),
+            }),
+          },
+        ),
         content: richText('Body', 'pages'),
+        sections: fields.blocks(
+          {
+            text: {
+              label: 'Text',
+              schema: fields.object({
+                heading: fields.text({ label: 'Heading (optional)' }),
+                body: fields.markdoc.inline({ label: 'Text', options: { image: false } }),
+              }),
+              itemLabel: (props) => `Text${props.fields.heading.value ? ` — ${props.fields.heading.value}` : ''}`,
+            },
+            products: {
+              label: 'Product grid',
+              schema: fields.object({
+                eyebrow: fields.text({ label: 'Small label (optional)' }),
+                heading: fields.text({ label: 'Heading', defaultValue: 'From the shop' }),
+                band: fields.text({
+                  label: 'Only this band / business',
+                  description: 'Optional. Must match the "Band / business / artist" on the products exactly.',
+                }),
+                type: fields.select({
+                  label: 'Only this type',
+                  options: [
+                    { label: 'Everything', value: 'all' },
+                    { label: 'Shirts', value: 'shirt' },
+                    { label: 'Posters', value: 'poster' },
+                    { label: 'Other', value: 'other' },
+                  ],
+                  defaultValue: 'all',
+                }),
+                limit: fields.integer({
+                  label: 'How many to show',
+                  description: '0 shows every match.',
+                  defaultValue: 4,
+                  validation: { min: 0 },
+                }),
+                hideSoldOut: fields.checkbox({ label: 'Hide sold-out items', defaultValue: false }),
+              }),
+              itemLabel: (props) => `Products — ${props.fields.heading.value || 'grid'}`,
+            },
+            cards: {
+              label: 'Numbered cards',
+              schema: fields.object({
+                eyebrow: fields.text({ label: 'Small label (optional)' }),
+                heading: fields.text({ label: 'Heading' }),
+                dark: fields.checkbox({ label: 'Dark background', defaultValue: true }),
+                items: fields.array(
+                  fields.object({
+                    title: fields.text({ label: 'Title' }),
+                    body: fields.text({ label: 'Body', multiline: true }),
+                  }),
+                  { label: 'Cards', itemLabel: (props) => props.fields.title.value || 'Card' },
+                ),
+              }),
+              itemLabel: (props) => `Cards — ${props.fields.heading.value || 'untitled'}`,
+            },
+            gallery: {
+              label: 'Photo gallery',
+              schema: fields.object({
+                heading: fields.text({ label: 'Heading (optional)' }),
+                images: fields.array(
+                  fields.object({
+                    src: fields.image({
+                      label: 'Image',
+                      directory: 'public/images/pages',
+                      publicPath: '/images/pages/',
+                      validation: { isRequired: true },
+                    }),
+                    alt: fields.text({ label: 'Alt text', description: 'Describe the image for screen readers.' }),
+                    caption: fields.text({ label: 'Caption (optional)' }),
+                  }),
+                  { label: 'Photos', itemLabel: (props) => props.fields.alt.value || 'Photo' },
+                ),
+              }),
+              itemLabel: (props) => `Gallery — ${props.fields.heading.value || 'photos'}`,
+            },
+            cta: {
+              label: 'Call-to-action box',
+              schema: fields.object({
+                heading: fields.text({ label: 'Heading', defaultValue: 'Got something to print?' }),
+                text: fields.text({ label: 'Text', multiline: true }),
+                buttonLabel: fields.text({ label: 'Button label', defaultValue: 'Get in touch →' }),
+                buttonHref: fields.text({ label: 'Button link', defaultValue: '/contact' }),
+                color: fields.select({
+                  label: 'Colour',
+                  options: [
+                    { label: 'Saucy red', value: 'saucy' },
+                    { label: 'Mustard', value: 'mustard' },
+                    { label: 'Ink (black)', value: 'ink' },
+                  ],
+                  defaultValue: 'saucy',
+                }),
+              }),
+              itemLabel: (props) => `Call to action — ${props.fields.heading.value}`,
+            },
+          },
+          {
+            label: 'Sections',
+            description: 'Extra sections stacked under the body, top to bottom. Drag to reorder.',
+          },
+        ),
       },
     }),
   },

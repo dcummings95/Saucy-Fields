@@ -1,0 +1,183 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import ProductCard from './ProductCard.astro';
+import CmsImage from './CmsImage.astro';
+import { getProducts, type PageEntry } from '../lib/keystatic';
+import { renderMarkdoc } from '../lib/markdoc';
+import { slugify } from '../lib/slug';
+
+/**
+ * Renders the "Sections" blocks an editor stacks on an Extra page
+ * (see the `pages` collection in keystatic.config.ts). Every block type there
+ * needs a branch here; an unknown one renders nothing.
+ */
+interface Props {
+  sections: PageEntry['sections'];
+}
+const { sections } = Astro.props;
+
+const needsProducts = sections.some((s) => s.discriminant === 'products');
+const allProducts = needsProducts ? await getProducts() : [];
+
+type ProductsBlock = Extract<PageEntry['sections'][number], { discriminant: 'products' }>['value'];
+function pickProducts(b: ProductsBlock) {
+  const band = b.band.trim() ? slugify(b.band) : '';
+  const list = allProducts.filter(
+    (p) =>
+      (!band || slugify(p.band ?? '') === band) &&
+      (b.type === 'all' || p.type === b.type) &&
+      (!b.hideSoldOut || p.status !== 'soldout'),
+  );
+  return b.limit && b.limit > 0 ? list.slice(0, b.limit) : list;
+}
+---
+
+{
+  sections.map((block) => {
+    switch (block.discriminant) {
+      case 'text': {
+        const html = renderMarkdoc(block.value.body?.node);
+        if (!html && !block.value.heading) return null;
+        return (
+          <section class="section--tight wrap ps-text">
+            {block.value.heading && <h2>{block.value.heading}</h2>}
+            <div class="prose" set:html={html} />
+          </section>
+        );
+      }
+
+      case 'products': {
+        const items = pickProducts(block.value);
+        if (!items.length) return null;
+        const band = block.value.band.trim();
+        const moreHref = band ? `/shop?band=${slugify(band)}` : '/shop';
+        return (
+          <section class="section wrap">
+            <SectionHeading eyebrow={block.value.eyebrow || undefined} title={block.value.heading || 'From the shop'} />
+            <div class="ps-grid">
+              {items.map((p, i) => (
+                <ProductCard product={p} index={i} />
+              ))}
+            </div>
+            <p class="ps-more">
+              <a class="btn" href={moreHref}>
+                See everything in the shop →
+              </a>
+            </p>
+          </section>
+        );
+      }
+
+      case 'cards': {
+        const { items, dark } = block.value;
+        if (!items.length) return null;
+        return (
+          <section class:list={['section', { 'section-invert': dark }]}>
+            <div class="wrap">
+              {block.value.heading && (
+                <SectionHeading eyebrow={block.value.eyebrow || undefined} title={block.value.heading} />
+              )}
+              <div class="ps-cards">
+                {items.map((item, i) => (
+                  <div class="ps-card panel" style={`--tilt:${(i % 2 ? 1 : -1) * 0.7}deg`}>
+                    <span class="ps-card__num">{String(i + 1).padStart(2, '0')}</span>
+                    <h3>{item.title}</h3>
+                    {item.body && <p>{item.body}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+      case 'gallery': {
+        const images = block.value.images.filter((img) => img.src);
+        if (!images.length) return null;
+        return (
+          <section class="section wrap">
+            {block.value.heading && <SectionHeading title={block.value.heading} />}
+            <div class="ps-gallery">
+              {images.map((img) => (
+                <figure class="ps-photo">
+                  <CmsImage
+                    src={img.src!}
+                    alt={img.alt}
+                    width={1200}
+                    height={900}
+                    sizes="(max-width: 640px) 92vw, (max-width: 1000px) 46vw, 370px"
+                  />
+                  {img.caption && <figcaption>{img.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </section>
+        );
+      }
+
+      case 'cta': {
+        const b = block.value;
+        return (
+          <section class="section--tight wrap">
+            <div class={`ps-cta panel ps-cta--${b.color}`}>
+              <h2>{b.heading}</h2>
+              {b.text && <p>{b.text}</p>}
+              {b.buttonLabel && b.buttonHref && (
+                <a class:list={['btn', b.color === 'mustard' ? 'btn--primary' : 'btn--mustard']} href={b.buttonHref}>
+                  {b.buttonLabel}
+                </a>
+              )}
+            </div>
+          </section>
+        );
+      }
+
+      default:
+        return null;
+    }
+  })
+}
+
+<style>
+  .ps-text h2 { margin-top: 0; }
+
+  .ps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(1rem, 3vw, 1.8rem); align-items: start; }
+  .ps-more { margin-top: 2rem; }
+
+  .ps-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+  .ps-card { padding: 1.4rem; transform: rotate(var(--tilt)); color: var(--ink); }
+  .ps-card__num { font-family: var(--font-display); font-weight: 800; font-size: 1.6rem; color: var(--saucy); }
+  .ps-card h3 { margin: 0.3rem 0 0.5rem; }
+  .ps-card p { margin: 0; }
+
+  .ps-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(1rem, 3vw, 1.6rem); }
+  .ps-photo { margin: 0; }
+  .ps-photo :global(img) {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    background: var(--paper-2);
+  }
+  .ps-photo figcaption { margin-top: 0.6rem; font-size: 0.9rem; }
+
+  .ps-cta { padding: clamp(1.5rem, 5vw, 3rem); text-align: center; }
+  .ps-cta h2 { margin-top: 0; margin-bottom: 0.5rem; }
+  .ps-cta p { max-width: 40ch; margin-inline: auto; margin-bottom: 1.3rem; }
+  .ps-cta--saucy { background: var(--saucy); color: var(--paper); }
+  .ps-cta--mustard { background: var(--mustard); color: var(--ink); }
+  .ps-cta--ink { background: var(--ink); color: var(--paper); }
+
+  @media (max-width: 900px) {
+    .ps-grid { grid-template-columns: repeat(2, 1fr); }
+    .ps-cards { grid-template-columns: 1fr; }
+    .ps-gallery { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .ps-grid,
+    .ps-gallery { grid-template-columns: 1fr; }
+  }
+</style>

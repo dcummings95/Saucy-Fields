@@ -1,10 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
 import SectionHeading from '../components/SectionHeading.astro';
 import ProductCard from '../components/ProductCard.astro';
 import { getHomepage, getProducts } from '../lib/keystatic';
 import { slugify } from '../lib/slug';
-import { webpSrcset } from '../lib/img';
 
 const home = await getHomepage();
 const products = await getProducts();
@@ -13,61 +13,18 @@ const featuredList = [...featured, ...products.filter((p) => !featured.includes(
 
 // Bands we've actually printed merch for — their name links to the filtered shop.
 const bandSlugsWithMerch = new Set(products.filter((p) => p.band).map((p) => slugify(p.band!)));
-
-// Hero headline: knock the last word out in the accent colour.
-const heroWords = home.heroHeadline.trim().split(/\s+/);
-const heroLast = heroWords.length > 1 ? heroWords.pop()! : '';
-const heroLead = heroWords.join(' ');
-
-// WebP variants only exist after `astro build` (see src/lib/img.ts).
-const heroWebp = webpSrcset(home.heroImage);
-const heroMobileWebp = home.heroImageMobile ? webpSrcset(home.heroImageMobile) : '';
 ---
 
 <Base description={home.heroSubtext}>
-  <section class="hero">
-    {
-      home.heroImage && (
-        <picture class="hero__pic">
-          {home.heroImageMobile && (
-            <>
-              {heroMobileWebp && (
-                <source
-                  media="(max-width: 640px)"
-                  type="image/webp"
-                  srcset={heroMobileWebp}
-                  width="900"
-                  height="1124"
-                />
-              )}
-              <source media="(max-width: 640px)" srcset={home.heroImageMobile} width="900" height="1124" />
-            </>
-          )}
-          {heroWebp && <source type="image/webp" srcset={heroWebp} sizes="100vw" />}
-          <img
-            class="hero__img"
-            src={home.heroImage}
-            alt={home.heroImageAlt}
-            width="1672"
-            height="941"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </picture>
-      )
-    }
-    <div class="hero__scrim" aria-hidden="true"></div>
-    <div class="hero__inner">
-      <span class="eyebrow hero__eyebrow">Winona, MN · screen-print shop</span>
-      <h1 class="hero__title">
-        {heroLead} <span class="hero__accent">{heroLast}</span>
-      </h1>
-      <div class="hero__cta">
-        <a class="btn btn--primary" href={home.primaryCta.href}>{home.primaryCta.label}</a>
-        <a class="btn hero__btn" href={home.secondaryCta.href}>{home.secondaryCta.label}</a>
-      </div>
-    </div>
-  </section>
+  <Hero
+    image={home.heroImage}
+    imageMobile={home.heroImageMobile}
+    alt={home.heroImageAlt}
+    eyebrow="Winona, MN · screen-print shop"
+    headline={home.heroHeadline}
+    primary={home.primaryCta}
+    secondary={home.secondaryCta}
+  />
 
   <section class="section--tight wrap">
     <div class="marquee" aria-hidden="true">
@@ -143,69 +100,6 @@ const heroMobileWebp = home.heroImageMobile ? webpSrcset(home.heroImageMobile) :
 </Base>
 
 <style>
-  .hero { position: relative; border-bottom: 2.5px solid var(--ink); isolation: isolate; overflow: hidden; }
-  .hero__pic { display: contents; }
-  .hero__img {
-    width: 100%;
-    height: clamp(460px, 72vh, 660px);
-    object-fit: cover;
-    object-position: 50% 82%;
-  }
-  .hero__scrim {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-      to bottom,
-      rgba(23, 21, 18, 0.22) 0%,
-      rgba(23, 21, 18, 0.04) 34%,
-      rgba(23, 21, 18, 0) 55%,
-      rgba(23, 21, 18, 0.4) 100%
-    );
-  }
-  .hero__inner {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: clamp(1.5rem, 4vw, 2.75rem);
-  }
-  .hero__eyebrow {
-    margin: 0 0 clamp(1rem, 3vw, 1.75rem);
-    background: var(--mustard);
-    color: var(--ink);
-    border: var(--border);
-    box-shadow: var(--shadow-sm);
-  }
-  .hero__title {
-    margin: 0;
-    width: min(100%, 60rem);
-    max-width: 100%;
-    font-size: clamp(1.9rem, 5.0vw, 5.0rem);
-    color: var(--paper);
-    -webkit-text-stroke: clamp(1.5px, 0.32vw, 3.5px) var(--ink);
-    paint-order: stroke fill;
-    /* hard poster offset + tight dark outline-halo so the near-white type
-       stays legible over any part of the photo (WCAG 1.4.3) */
-    text-shadow:
-      4px 4px 0 var(--ink),
-      0 0 3px rgba(23, 21, 18, 0.95),
-      0 0 3px rgba(23, 21, 18, 0.95);
-    text-wrap: balance;
-    overflow-wrap: break-word;
-  }
-  .hero__accent { color: var(--saucy); }
-  .hero__cta {
-    margin-top: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    justify-content: center;
-  }
-  .hero__btn { background: var(--paper); }
-
   .marquee {
     overflow: hidden;
     border-block: 2.5px solid var(--ink);
@@ -254,27 +148,6 @@ const heroMobileWebp = home.heroImageMobile ? webpSrcset(home.heroImageMobile) :
   @media (max-width: 900px) {
     .grid { grid-template-columns: repeat(2, 1fr); }
     .what { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    .hero__img { height: clamp(480px, 82vh, 600px); object-position: 50% 62%; }
-    .hero__inner { padding: 1.4rem 1.15rem; }
-    .hero__eyebrow {
-      margin-bottom: 1.1rem;
-      font-size: 0.6rem;
-      letter-spacing: 0.06em;
-      padding: 0.3rem 0.55rem;
-      transform: rotate(-1deg);
-    }
-    .hero__title {
-      font-size: clamp(1.7rem, 7vw, 2.8rem);
-      max-width: 15ch;
-      text-shadow:
-        3px 3px 0 var(--ink),
-        0 0 3px rgba(23, 21, 18, 0.95),
-        0 0 3px rgba(23, 21, 18, 0.95);
-    }
-    .hero__cta { flex-direction: column; align-items: center; }
-    .hero__cta .btn { width: min(20rem, 100%); justify-content: center; }
   }
   @media (max-width: 480px) {
     .grid { grid-template-columns: 1fr; }
