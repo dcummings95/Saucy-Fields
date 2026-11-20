@@ -12,13 +12,18 @@ import { config, collection, singleton, fields } from '@keystatic/core';
  *  - production     -> GitHub mode: Isaac/Spencer sign in with GitHub at /keystatic
  *                      and their edits are committed to the repo, triggering a deploy.
  *
- * To test GitHub mode locally, temporarily force `kind: 'github'` below.
+ * To run GitHub mode locally (needed once, to create the Keystatic GitHub App —
+ * Keystatic only allows that flow in dev), start the dev server with
+ * PUBLIC_KEYSTATIC_STORAGE=github set in `.env`.
  */
-const GITHUB_REPO = 'dcummings95/saucy-fields' as const;
+// Must match the GitHub repo slug exactly, including case.
+const GITHUB_REPO = 'dcummings95/Saucy-Fields' as const;
 
-const storage = import.meta.env.DEV
-  ? ({ kind: 'local' } as const)
-  : ({ kind: 'github', repo: GITHUB_REPO } as const);
+const useGithub = !import.meta.env.DEV || import.meta.env.PUBLIC_KEYSTATIC_STORAGE === 'github';
+
+const storage = useGithub
+  ? ({ kind: 'github', repo: GITHUB_REPO } as const)
+  : ({ kind: 'local' } as const);
 
 const productImage = (label: string) =>
   fields.image({
