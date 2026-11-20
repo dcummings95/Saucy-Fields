@@ -10,7 +10,12 @@ const show = announcement.enabled && text;
 {
   show && (
     <div class="announce">
-      <a class="announce__link" href={announcement.link || undefined} data-has-link={announcement.link ? '' : undefined}>
+      <a
+        class="announce__link"
+        href={announcement.link || undefined}
+        data-has-link={announcement.link ? '' : undefined}
+        aria-label={announcement.link ? text : undefined}
+      >
         <div class="announce__track" aria-hidden="true">
           {Array.from({ length: 2 }).map(() => (
             <span class="announce__group">

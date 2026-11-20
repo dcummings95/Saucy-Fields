@@ -40,15 +40,15 @@ const payload = {
     )
   }
 
-  <div class="atc__field atc__field--qty">
+  <label class="atc__field atc__field--qty">
     <span>Qty</span>
     <input type="number" name="qty" value="1" min="1" max="99" inputmode="numeric" />
-  </div>
+  </label>
 
   <button type="submit" class="btn btn--primary btn--block atc__submit" disabled={soldOut}>
     {soldOut ? 'Sold out' : `Add to cart · ${usd(product.price)}`}
   </button>
-  <p class="atc__msg" data-atc-msg hidden>Added ✓ <a href="/cart">View cart →</a></p>
+  <p class="atc__msg" data-atc-msg role="status" hidden>Added ✓ <a href="/cart">View cart →</a></p>
 </form>
 
 <style>
