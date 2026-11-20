@@ -171,6 +171,7 @@ img { max-width: 100%; display: block; }
 .prose ul, .prose ol { padding-left: 1.3rem; }
 .prose li { margin-bottom: 0.35rem; }
 .prose a { font-weight: 600; }
+.prose img { height: auto; margin-block: 0.5rem; }
 
 /* --- misc --- */
 .visually-hidden {

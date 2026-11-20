@@ -33,6 +33,23 @@ const productImage = (label: string) =>
     validation: { isRequired: false },
   });
 
+/**
+ * Rich-text field. Images inserted in the editor must land under `public/` or
+ * the site can't serve them (Keystatic's default stores them beside the content
+ * file in `src/content/`, which renders as a broken image). For collections
+ * Keystatic adds the entry slug: public/images/content/<folder>/<slug>/<file>.
+ */
+const richText = (label: string, folder: string) =>
+  fields.markdoc({
+    label,
+    options: {
+      image: {
+        directory: `public/images/content/${folder}`,
+        publicPath: `/images/content/${folder}/`,
+      },
+    },
+  });
+
 export default config({
   storage,
   ui: {
@@ -119,9 +136,7 @@ export default config({
           description: 'Optional colour options.',
           itemLabel: (props) => props.value,
         }),
-        description: fields.markdoc({
-          label: 'Full description',
-        }),
+        description: richText('Full description', 'products'),
         seoDescription: fields.text({
           label: 'SEO description',
           description: 'Optional. Overrides the short description in search results / link previews.',
@@ -144,7 +159,7 @@ export default config({
           multiline: true,
         }),
         showInFooter: fields.checkbox({ label: 'Link from the site footer', defaultValue: true }),
-        content: fields.markdoc({ label: 'Body' }),
+        content: richText('Body', 'pages'),
       },
     }),
   },
@@ -316,7 +331,7 @@ export default config({
           }),
           { label: 'Process steps', itemLabel: (props) => props.fields.step.value || 'Step' },
         ),
-        story: fields.markdoc({ label: 'Story' }),
+        story: richText('Story', 'about'),
       },
     }),
 
@@ -354,7 +369,7 @@ export default config({
           multiline: true,
           defaultValue: 'Send us a note with your project, your timeline, and any art you already have.',
         }),
-        body: fields.markdoc({ label: 'Extra content (optional)' }),
+        body: richText('Extra content (optional)', 'services'),
       },
     }),
   },

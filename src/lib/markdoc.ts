@@ -10,5 +10,9 @@ export function renderMarkdoc(node: unknown): string {
   const transformed = Markdoc.transform(node as Parameters<typeof Markdoc.transform>[0]);
   const html = Markdoc.renderers.html(transformed as RenderableTreeNode);
   // An empty document renders as an empty wrapper — treat that as "no content".
-  return html.replace(/<article>\s*<\/article>/, '').trim();
+  // Images inserted in the editor load lazily so they don't hold up the page.
+  return html
+    .replace(/<article>\s*<\/article>/, '')
+    .replace(/<img /g, '<img loading="lazy" decoding="async" ')
+    .trim();
 }
